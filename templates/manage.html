@@ -52,24 +52,11 @@
 <body class="bg-[#f7f3ee] text-[#1a1612] h-screen flex flex-col overflow-hidden">
 
 <!-- HEADER -->
+<!-- HEADER (ՄԱՔՐՎԱԾ ՏԱՐԲԵՐԱԿ) -->
 <header class="bg-[#1a1612] h-14 flex items-center justify-between px-6 flex-shrink-0 z-50">
     <div class="flex items-center gap-4">
         <a href="/" class="text-[#e8d5b0] opacity-60 hover:opacity-100 transition-opacity text-lg no-underline">←</a>
         <h1 id="weddingHeaderTitle" class="font-cormorant text-[#e8d5b0] text-xl font-semibold tracking-wide">Բեռնվում է...</h1>
-    </div>
-    <div class="flex gap-2">
-        <button onclick="startAddTable('round')"    class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#c9a96e]/40 text-[#e8d5b0] text-xs font-medium hover:bg-[#c9a96e]/15 hover:border-[#c9a96e] transition-all">
-            <span class="w-3 h-3 rounded-full border border-[#e8d5b0]/60 inline-block"></span> Կլոր
-        </button>
-        <button onclick="startAddTable('rectangle')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#c9a96e]/40 text-[#e8d5b0] text-xs font-medium hover:bg-[#c9a96e]/15 hover:border-[#c9a96e] transition-all">
-            <span class="w-4 h-2 rounded-sm border border-[#e8d5b0]/60 inline-block"></span> Ուղղ.
-        </button>
-        <button onclick="startAddTable('double_rectangle')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#c9a96e]/40 text-[#e8d5b0] text-xs font-medium hover:bg-[#c9a96e]/15 hover:border-[#c9a96e] transition-all">
-            <span class="w-5 h-2 rounded-sm border border-[#e8d5b0]/60 inline-block"></span> Կրկ.
-        </button>
-        <button onclick="startAddTable('presidium')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#c9a96e]/40 text-[#e8d5b0] text-xs font-medium hover:bg-[#c9a96e]/15 hover:border-[#c9a96e] transition-all">
-            <span class="text-[#c9a96e]">★</span> Պրեզ.
-        </button>
     </div>
 </header>
 
@@ -91,13 +78,25 @@
                 <select id="guestSide" class="flex-1 px-2 py-1.5 rounded-lg border border-[#e8ddd0] bg-white text-xs text-[#1a1612] cursor-pointer focus:border-[#c9a96e]">
                     <option value="bride">👰 Հարսի</option>
                     <option value="groom">🤵 Փեսայի</option>
-                    <option value="mutual">🤝 Ընդհ.</option>
+
                 </select>
             </div>
             <button onclick="addGuest()" class="w-full py-2 bg-[#1a1612] text-[#e8d5b0] rounded-lg text-xs font-semibold hover:bg-[#3d3228] transition-colors">
                 ＋ Ավելացնել հյուր
             </button>
         </div>
+
+        <div class="flex gap-1.5 mb-4 bg-[#c9a96e]/[0.04] p-1 rounded-xl border border-[#e8ddd0]">
+    <button onclick="filterMainGuests('all')" id="btnMainFilter-all" class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg transition-all bg-[#1a1612] text-[#e8d5b0] shadow-sm">
+        Բոլորը
+    </button>
+    <button onclick="filterMainGuests('bride')" id="btnMainFilter-bride" class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] hover:bg-[#f7f3ee] transition-all">
+        👰 Հարսի
+    </button>
+    <button onclick="filterMainGuests('groom')" id="btnMainFilter-groom" class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] hover:bg-[#f7f3ee] transition-all">
+        🤵 Փեսայի
+    </button>
+</div>
 
         <!-- Merge bar -->
         <div id="mergeBar" class="hidden px-3 py-2 bg-[#c4736a]/10 border-b border-[#c4736a]/20 flex-shrink-0">
@@ -112,12 +111,42 @@
     </div>
 
     <!-- CENTER: Hall -->
+    <!-- CENTER: Hall -->
     <div class="relative overflow-hidden bg-[#fdfaf6]">
+
+        <!-- 🆕 DROPDOWN MENU BAR: ԱՎԵԼԱՑՆԵԼ ՍԵՂԱՆ -->
+        <div class="absolute left-4 top-3 z-30 inline-block text-left">
+            <div>
+                <button onclick="toggleTableMenu(event)" id="tableMenuBtn" class="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm border border-[#e8ddd0] rounded-xl text-xs font-semibold text-[#1a1612] shadow-sm hover:border-[#c9a96e] hover:bg-white transition-all">
+                    ➕ Ավելացնել Սեղան <span class="text-[9px] text-[#8c7b66] transition-transform duration-200" id="menuArrow">▼</span>
+                </button>
+            </div>
+
+            <!-- Մենյուի բացվող հատվածը (Hidden by default) -->
+            <div id="tableDropdownMenu" class="hidden absolute left-0 mt-1.5 w-44 rounded-xl bg-white border border-[#e8ddd0] shadow-xl z-40 p-1 space-y-0.5 animate-fadeIn">
+                <button onclick="triggerMenuAction('round')" class="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#5c4f3d] hover:bg-[#c9a96e]/10 hover:text-[#1a1612] rounded-lg transition-colors text-left">
+                    <span class="w-3.5 h-3.5 rounded-full border border-[#1a1612]/30 bg-[#e8e0d4] inline-block"></span> Կլոր սեղան
+                </button>
+                <button onclick="triggerMenuAction('rectangle')" class="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#5c4f3d] hover:bg-[#c9a96e]/10 hover:text-[#1a1612] rounded-lg transition-colors text-left">
+                    <span class="w-4.5 h-2.5 rounded-sm border border-[#1a1612]/30 bg-[#e8e0d4] inline-block"></span> Ուղղանկյուն
+                </button>
+                <button onclick="triggerMenuAction('double_rectangle')" class="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#5c4f3d] hover:bg-[#c9a96e]/10 hover:text-[#1a1612] rounded-lg transition-colors text-left">
+                    <span class="w-5 h-2.5 rounded-sm border border-[#1a1612]/30 bg-[#e8e0d4] inline-block"></span> Կրկնակի Ուղղ.
+                </button>
+                <div class="h-[1px] bg-[#f0eae2] my-1 mx-1"></div>
+                <button onclick="triggerMenuAction('presidium')" class="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#8a6c30] hover:bg-[#c9a96e]/15 rounded-lg transition-colors text-left">
+                    <span class="text-xs">👑</span> Պրեզիդիում
+                </button>
+            </div>
+        </div>
+
+        <!-- Zoom Controls (Աջ կողմում) -->
         <div class="zoom-controls absolute right-3 top-3 z-30 flex flex-col gap-1">
             <button onclick="zoomHall(1.15)" class="w-8 h-8 bg-white border border-[#e8ddd0] rounded-lg text-base font-semibold text-[#5c4f3d] shadow-sm hover:bg-[#f7f3ee] transition-all flex items-center justify-center">+</button>
             <button onclick="zoomHall(0.87)" class="w-8 h-8 bg-white border border-[#e8ddd0] rounded-lg text-base font-semibold text-[#5c4f3d] shadow-sm hover:bg-[#f7f3ee] transition-all flex items-center justify-center">−</button>
             <button onclick="resetZoom()" class="w-8 h-8 bg-white border border-[#e8ddd0] rounded-lg text-sm text-[#5c4f3d] shadow-sm hover:bg-[#f7f3ee] transition-all flex items-center justify-center">⊙</button>
         </div>
+
         <div class="hall-grid w-full h-full relative" id="hallContainer" ondragover="event.preventDefault()">
             <div id="zoomWrapper" class="zoom-wrapper"></div>
         </div>
@@ -128,19 +157,29 @@
         <div class="px-4 pt-4 pb-3 border-b border-[#e8ddd0]">
             <div class="font-cormorant text-base font-semibold text-[#1a1612]">Չնստեցվածներ</div>
             <div id="unseatedSummary" class="text-[10px] text-[#8c7b66] mt-0.5">Բեռնվում է...</div>
+            <div class="flex gap-1.5 my-3 bg-[#c9a96e]/[0.04] p-1 rounded-xl border border-[#e8ddd0]">
+                <button onclick="filterUnseatedMembers('all')" id="btnUnseatedFilter-all" class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg transition-all bg-[#1a1612] text-[#e8d5b0] shadow-sm">
+                    Բոլորը
+                </button>
+                <button onclick="filterUnseatedMembers('bride')" id="btnUnseatedFilter-bride" class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] hover:bg-[#f7f3ee] transition-all">
+                    👰 Հարսի
+                </button>
+                <button onclick="filterUnseatedMembers('groom')" id="btnUnseatedFilter-groom" class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] hover:bg-[#f7f3ee] transition-all">
+                    🤵 Փեսայի
+                </button>
+            </div>
         </div>
         <!-- Shape mini-legend -->
-        <div class="flex gap-3 px-3 py-2 border-b border-[#e8ddd0] bg-[#c9a96e]/[0.03] flex-shrink-0">
-            <div class="flex items-center gap-1 text-[10px] text-[#8c7b66]"><span class="w-3 h-3 rounded-full bg-[#e8e0d4] border border-[#cfc4b4] inline-block"></span>Կլոր</div>
-            <div class="flex items-center gap-1 text-[10px] text-[#8c7b66]"><span class="w-4 h-2 rounded-sm bg-[#e8e0d4] border border-[#cfc4b4] inline-block"></span>Ուղղ.</div>
-            <div class="flex items-center gap-1 text-[10px] text-[#8c7b66]"><span class="w-5 h-2 rounded-sm bg-[#e8e0d4] border border-[#cfc4b4] inline-block"></span>Կրկ.</div>
-            <div class="flex items-center gap-1 text-[10px] text-[#8c7b66]"><span class="w-6 h-1.5 rounded-sm bg-[#ddd5c4] border border-[#c4b89e] inline-block"></span>Պրեզ.</div>
-        </div>
+
         <div id="unseatedContainer" class="flex-1 overflow-y-auto p-2.5">
             <p class="text-center text-[#8c7b66] text-xs italic py-6">Բեռնվում է...</p>
         </div>
     </div>
+
+
 </main>
+
+
 
 <!-- MODAL: Add table — step 1: name, step 2: capacity -->
 <div class="modal-overlay" id="addTableModal" onclick="closeModal('addTableModal')">
@@ -228,6 +267,82 @@
     </div>
 </div>
 
+
+//nor avelacum -----------------------
+
+<div class="modal-overlay" id="editCapacityModal" onclick="closeModal('editCapacityModal')">
+    <div class="bg-[#fdfaf6] rounded-2xl w-80 shadow-2xl border border-[#e8ddd0] overflow-hidden" onclick="event.stopPropagation()">
+        <div class="px-5 py-4 border-b border-[#e8ddd0] flex justify-between items-center">
+            <span class="font-cormorant text-lg font-semibold text-[#1a1612]">Փոխել տեղերի քանակը</span>
+            <button onclick="closeModal('editCapacityModal')" class="text-[#8c7b66] hover:text-[#1a1612] text-lg leading-none transition-colors">✕</button>
+        </div>
+        <div class="p-5 space-y-4">
+            <div class="flex items-center gap-3 bg-[#c9a96e]/[0.06] rounded-xl border border-[#e8ddd0] px-4 py-3">
+                <button onclick="changeEditCapacity(-1)" class="w-8 h-8 rounded-full border border-[#e8ddd0] bg-white text-[#1a1612] text-base font-medium flex items-center justify-center hover:border-[#c9a96e] hover:bg-[#f7f3ee] transition-all flex-shrink-0">−</button>
+                <span id="editCapacityDisplay" class="font-cormorant text-3xl font-bold text-[#1a1612] flex-1 text-center">12</span>
+                <button onclick="changeEditCapacity(1)"  class="w-8 h-8 rounded-full border border-[#e8ddd0] bg-white text-[#1a1612] text-base font-medium flex items-center justify-center hover:border-[#c9a96e] hover:bg-[#f7f3ee] transition-all flex-shrink-0">+</button>
+            </div>
+            <button onclick="confirmEditCapacity()" class="w-full py-2.5 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold hover:bg-[#3d3228] transition-colors">
+                Պահպանել ✓
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="confirmDeleteModal" onclick="closeModal('confirmDeleteModal')">
+    <div class="bg-[#fdfaf6] rounded-2xl w-72 shadow-2xl border border-[#e8ddd0] overflow-hidden" onclick="event.stopPropagation()">
+        <div class="p-6 text-center">
+            <div class="w-12 h-12 rounded-full bg-[#c4736a]/10 text-[#c4736a] flex items-center justify-center text-xl mx-auto mb-3">🗑</div>
+            <h3 class="font-cormorant text-base font-bold text-[#1a1612] mb-1">Հաստատե՞լ ջնջումը</h3>
+            <p id="confirmDeleteText" class="text-[11px] text-[#8c7b66] mb-5">Այս գործողությունը անդառնալի է։</p>
+            <div class="flex gap-2">
+                <button onclick="closeModal('confirmDeleteModal')" class="flex-1 py-2 rounded-lg border border-[#e8ddd0] text-xs font-semibold text-[#5c4f3d] bg-white hover:bg-[#f7f3ee] transition-colors">Չեղարկել</button>
+                <button id="executeDeleteBtn" class="flex-1 py-2 rounded-lg bg-[#c4736a] text-white text-xs font-semibold hover:bg-[#b06059] transition-colors">Ջնջել</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal-overlay" id="renameMemberModal" onclick="closeModal('renameMemberModal')">
+    <div class="bg-[#fdfaf6] rounded-2xl w-80 shadow-2xl border border-[#e8ddd0] overflow-hidden" onclick="event.stopPropagation()">
+        <div class="px-5 py-4 border-b border-[#e8ddd0] flex justify-between items-center">
+            <span class="font-cormorant text-lg font-semibold text-[#1a1612]">Փոխել հյուրի անունը</span>
+            <button onclick="closeModal('renameMemberModal')" class="text-[#8c7b66] hover:text-[#1a1612] text-lg leading-none transition-colors">✕</button>
+        </div>
+        <div class="p-5 space-y-4">
+            <div>
+                <label class="block text-[10px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-1.5">Հյուրի անունը</label>
+                <input id="renameMemberInput" type="text"
+                    class="w-full px-3 py-2 rounded-lg border border-[#e8ddd0] bg-white text-sm text-[#1a1612] focus:border-[#c9a96e] transition-colors">
+            </div>
+            <button id="updateConfirmBtn" class="w-full py-2.5 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold hover:bg-[#3d3228] transition-colors">
+                Թարմացնել ✓
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal-overlay" id="chairActionsModal" onclick="closeModal('chairActionsModal')">
+    <div class="bg-[#fdfaf6] rounded-2xl w-72 shadow-2xl border border-[#e8ddd0] overflow-hidden" onclick="event.stopPropagation()">
+        <div class="px-5 py-4 border-b border-[#e8ddd0] flex justify-between items-center bg-[#c9a96e]/[0.03]">
+            <span id="chairActionsTitle" class="font-cormorant text-base font-bold text-[#1a1612]">Հյուրի գործողություններ</span>
+            <button onclick="closeModal('chairActionsModal')" class="text-[#8c7b66] hover:text-[#1a1612] text-lg leading-none transition-colors">✕</button>
+        </div>
+        <div class="p-4 space-y-2">
+            <button id="chairActionRenameBtn" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border border-[#e8ddd0] bg-white text-sm font-medium text-[#1a1612] hover:border-[#c9a96e] hover:bg-[#c9a96e]/5 transition-all text-left">
+                <span class="text-base">✏️</span> Փոխել անունը
+            </button>
+
+            <button id="chairActionUnseatBtn" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border border-[#e8ddd0] bg-white text-sm font-medium text-[#c4736a] hover:border-[#c4736a] hover:bg-[#c4736a]/5 transition-all text-left">
+                <span class="text-base">❌</span> Հեռացնել սեղանից
+            </button>
+        </div>
+    </div>
+</div>
+
+
 <script>
 const weddingId = {{ wedding_id }};
 let zoomScale = 1.0;
@@ -274,6 +389,48 @@ function resetZoom() {
     document.getElementById('zoomWrapper').style.transform = 'scale(1)';
 }
 
+// ── 🆕 DROPDOWN MENU LOGIC ──
+
+// Մենյուն բացելու և փակելու ֆունկցիա
+function toggleTableMenu(event) {
+    event.stopPropagation(); // Կանխում ենք body քլիքի տարածումը
+    const menu = document.getElementById('tableDropdownMenu');
+    const arrow = document.getElementById('menuArrow');
+
+    const isHidden = menu.classList.contains('hidden');
+
+    if (isHidden) {
+        menu.classList.remove('hidden');
+        arrow.style.transform = 'rotate(180deg)';
+    } else {
+        menu.classList.add('hidden');
+        arrow.style.transform = 'rotate(0deg)';
+    }
+}
+
+// Տիպը ընտրելիս մենյուն փակել և կանչել քո ստանդարտ սեղան ստեղծելու մոդալը
+function triggerMenuAction(category) {
+    const menu = document.getElementById('tableDropdownMenu');
+    const arrow = document.getElementById('menuArrow');
+
+    menu.classList.add('hidden');
+    arrow.style.transform = 'rotate(0deg)';
+
+    // Կանչում ենք քո ունեցած ստանդարտ ֆունկցիան
+    startAddTable(category);
+}
+
+// Խելացի փակում. Եթե քլիք անեն մենյուից դուրս՝ այն կփակվի
+document.addEventListener('click', (e) => {
+    const menu = document.getElementById('tableDropdownMenu');
+    const arrow = document.getElementById('menuArrow');
+    const btn = document.getElementById('tableMenuBtn');
+
+    if (menu && !menu.classList.contains('hidden') && e.target !== btn && !btn.contains(e.target)) {
+        menu.classList.add('hidden');
+        arrow.style.transform = 'rotate(0deg)';
+    }
+});
 // ── ADD TABLE FLOW: step 1 open modal ──
 function startAddTable(category) {
     pendingNewCategory = category;
@@ -324,18 +481,44 @@ async function loadTables() {
     tables.forEach((table, index) => wrapper.appendChild(buildTableElement(table, allMembers, index)));
 }
 
-function getTableDimensions(category) {
+function getTableDimensions(category, capacity = 10) {
+    // Բազային չափսեր ստանդարտ քանակների համար
+    let w = 160, h = 160, radius = 86;
+
     switch(category) {
-        case 'round':            return { w: 150, h: 150, radius: 86 };
-        case 'rectangle':        return { w: 220, h: 100 };
-        case 'double_rectangle': return { w: 300, h: 110 };
-        case 'presidium':        return { w: 400, h: 75 };
-        default:                 return { w: 160, h: 160 };
+        case 'round':
+            // Կլոր սեղանի համար՝ ինչքան շատ աթոռ, այնքան մեծ շառավիղ (radius) ու չափսեր
+            // Եթե աթոռները 12-ից շատ են, ամեն ավել աթոռի համար մեծացնում ենք 8px-ով
+            const extraRound = Math.max(0, capacity - 12);
+            w = 150 + (extraRound * 12);
+            h = 150 + (extraRound * 12);
+            radius = (w / 2) + 11; // Աթոռների հեռավորությունը կենտրոնից
+            return { w, h, radius };
+
+        case 'rectangle':
+            // Ուղղանկյուն սեղանի համար (աթոռները 2 կողմից են, այսինքն՝ լայնությունն է կարևոր)
+            // Եթե 8 աթոռից շատ է, ամեն զույգի համար (մեկ վերև, մեկ ներքև) ավելացնում ենք լայնությունը
+            const extraRect = Math.max(0, capacity - 8);
+            w = 220 + (Math.ceil(extraRect / 2) * 45);
+            return { w, h: 100 };
+
+        case 'double_rectangle':
+            const extraDouble = Math.max(0, capacity - 16);
+            w = 300 + (Math.ceil(extraDouble / 2) * 40);
+            return { w, h: 110 };
+
+        case 'presidium':
+            const extraPres = Math.max(0, capacity - 20);
+            w = 400 + (extraPres * 25);
+            return { w, h: 75 };
+
+        default:
+            return { w: 160, h: 160 };
     }
 }
 
 function buildTableElement(table, allMembers, index) {
-    const dim = getTableDimensions(table.category);
+    const dim = getTableDimensions(table.category, table.capacity);
     const isRound = table.category === 'round';
 
     const tDiv = document.createElement('div');
@@ -371,12 +554,29 @@ function buildTableElement(table, allMembers, index) {
     `;
 
     // Action buttons
+    // Action buttons — Ճիշտ կենտրոնացված լրիվ սեղանի տակ
     const actions = document.createElement('div');
-    actions.className = 'table-actions';
+    // bottom-[-50px]-ի փոխարեն դնում ենք top-[110%] և օգտագործում flex-col/items-center
+    // top-[130%]-ի փոխարեն դնում ենք top-full mt-10 (կամ mt-12, եթե ավելի ներքև ես ուզում)
+actions.className = 'table-actions absolute top-full mt-10 left-0 w-full flex justify-center gap-1.5 z-30 whitespace-nowrap pointer-events-auto';
     actions.innerHTML = `
-        <button onclick="event.stopPropagation();openTableSheet(${table.id})" style="background:white;border:1px solid #e8ddd0;border-radius:6px;padding:3px 8px;font-size:10px;cursor:pointer;color:#5c4f3d;font-family:'DM Sans',sans-serif;font-weight:500;transition:all 0.15s;" onmouseover="this.style.borderColor='#c9a96e'" onmouseout="this.style.borderColor='#e8ddd0'">📋 Թերթիկ</button>
-        <button onclick="event.stopPropagation();editTableCapacity(${table.id},${table.capacity})" style="background:white;border:1px solid #e8ddd0;border-radius:6px;padding:3px 8px;font-size:10px;cursor:pointer;color:#5c4f3d;font-family:'DM Sans',sans-serif;font-weight:500;transition:all 0.15s;" onmouseover="this.style.borderColor='#c9a96e'" onmouseout="this.style.borderColor='#e8ddd0'">✏️ Աթոռ</button>
-        <button onclick="event.stopPropagation();deleteTable(${table.id})" style="background:white;border:1px solid #e8ddd0;border-radius:6px;padding:3px 8px;font-size:10px;cursor:pointer;color:#5c4f3d;font-family:'DM Sans',sans-serif;font-weight:500;transition:all 0.15s;" onmouseover="this.style.color='#c4736a';this.style.borderColor='#c4736a'" onmouseout="this.style.color='#5c4f3d';this.style.borderColor='#e8ddd0'">🗑️</button>
+        <button onclick="event.stopPropagation();openTableSheet(${table.id})"
+            class="bg-white border border-[#e8ddd0] hover:border-[#c9a96e] rounded-md text-[10px] font-medium text-[#5c4f3d] font-['DM_Sans'] shadow-sm cursor-pointer transition-all duration-150 flex items-center justify-center gap-1"
+            style="width: 76px; height: 24px; padding: 0;">
+            📋 Թերթիկ
+        </button>
+
+        <button onclick="event.stopPropagation();editTableCapacity(${table.id},${table.capacity})"
+            class="bg-white border border-[#e8ddd0] hover:border-[#c9a96e] rounded-md text-[10px] font-medium text-[#5c4f3d] font-['DM_Sans'] shadow-sm cursor-pointer transition-all duration-150 flex items-center justify-center gap-1"
+            style="width: 64px; height: 24px; padding: 0;">
+            ✏️ Աթոռ
+        </button>
+
+        <button onclick="event.stopPropagation();deleteTable(${table.id})"
+            class="bg-white border border-[#e8ddd0] hover:text-[#c4736a] hover:border-[#c4736a] rounded-md text-[10px] font-medium text-[#5c4f3d] font-['DM_Sans'] shadow-sm cursor-pointer transition-all duration-150 flex items-center justify-center"
+            style="width: 32px; height: 24px; padding: 0;">
+            🗑️
+        </button>
     `;
 
     tDiv.appendChild(body);
@@ -404,7 +604,6 @@ function buildTableElement(table, allMembers, index) {
         body.appendChild(chair);
     }
 
-    body.addEventListener('click', (e) => { if (!e.target.classList.contains('chair')) openTableSheet(table.id); });
 
     // Drag to move
     tDiv.addEventListener('mousedown', (e) => {
@@ -456,31 +655,70 @@ document.addEventListener('mouseup', () => {
     if (activeMovingTable) { activeMovingTable.classList.remove('dragging'); activeMovingTable = null; }
 });
 
-async function deleteTable(id) {
-    if (!confirm('Ջնջե՞լ սեղանը։')) return;
-    await fetch(`/api/v1/tables/${id}`, { method: 'DELETE' });
-    loadTables(); loadUnseated();
+// ── ԹԱՐՄԱՑՎԱԾ ՋՆՋԵԼՈՒ ՖՈՒՆԿՑԻԱՆԵՐ ──
+function deleteTable(id) {
+    document.getElementById('confirmDeleteText').innerText = "Ցանկանո՞ւմ եք ջնջել այս սեղանը։ Բոլոր նստած հյուրերը կազատվեն։";
+    openModal('confirmDeleteModal');
+
+    document.getElementById('executeDeleteBtn').onclick = async () => {
+        await fetch(`/api/v1/tables/${id}`, { method: 'DELETE' });
+        closeModal('confirmDeleteModal');
+        loadTables();
+        loadUnseated();
+    };
 }
 
-async function editTableCapacity(tableId, current) {
-    const val = prompt(`Աթոռների նոր քանակ (ներկայիս՝ ${current}):`, current);
-    if (!val || isNaN(val)) return;
-    const newCap = parseInt(val);
-    if (newCap === current) return;
-    const res = await fetch(`/api/v1/tables/${tableId}/capacity?capacity=${newCap}`, { method: 'PUT' });
-    if (res.ok) loadTables();
-    else { const err = await res.json().catch(() => ({})); alert(err.detail || 'Սխալ'); }
+// Քանի որ հյուր ջնջելն էլ էր վերևից հարցնում, սա էլ սարքենք սիրուն
+async function deleteGuest(id) {
+    document.getElementById('confirmDeleteText').innerText = "Ցանկանո՞ւմ եք ջնջել այս հրավերը և հեռացնել բոլոր անդամներին։";
+    openModal('confirmDeleteModal');
+
+    document.getElementById('executeDeleteBtn').onclick = async () => {
+        await fetch(`/api/v1/guests/${id}`, { method: 'DELETE' });
+        closeModal('confirmDeleteModal');
+        loadGuests();
+        loadUnseated();
+        loadTables();
+    };
+}
+// Նոր վիճակներ մոդալների համար
+let pendingEditTableId = null;
+let pendingEditCapacityVal = 10;
+let pendingDeleteAction = null;
+
+// ── ԹԱՐՄԱՑՎԱԾ ԱԹՈՌՆԵՐԻ ՔԱՆԱԿԻ ՓՈՓՈԽՈՒՄ ──
+function editTableCapacity(tableId, current) {
+    pendingEditTableId = tableId;
+    pendingEditCapacityVal = current;
+    document.getElementById('editCapacityDisplay').innerText = current;
+    openModal('editCapacityModal');
+}
+
+function changeEditCapacity(delta) {
+    pendingEditCapacityVal = Math.max(1, Math.min(60, pendingEditCapacityVal + delta));
+    document.getElementById('editCapacityDisplay').innerText = pendingEditCapacityVal;
+}
+
+async function confirmEditCapacity() {
+    const res = await fetch(`/api/v1/tables/${pendingEditTableId}/capacity?capacity=${pendingEditCapacityVal}`, { method: 'PUT' });
+    if (res.ok) {
+        closeModal('editCapacityModal');
+        loadTables();
+    } else {
+        const err = await res.json().catch(() => ({}));
+        alert(err.detail || 'Սխալ կատարվեց');
+    }
 }
 
 // ── TABLE SHEET ──
+// ── TABLE SHEET (ԳԵՂԵՑԿԱՑՎԱԾ ՏԱՐԲԵՐԱԿ) ──
 async function openTableSheet(tableId) {
-    const [gR, tR] = await Promise.all([
-        fetch(`/api/v1/guests/wedding/${weddingId}`),
-        fetch(`/api/v1/tables/wedding/${weddingId}`)
-    ]);
-    if (!gR.ok || !tR.ok) return;
-    const guests = await gR.json();
-    const tables = await tR.json();
+    const guestsRes = await fetch(`/api/v1/guests/wedding/${weddingId}`);
+    const tableRes = await fetch(`/api/v1/tables/wedding/${weddingId}`);
+    if (!guestsRes.ok || !tableRes.ok) return;
+
+    const guests = await guestsRes.json();
+    const tables = await tableRes.json();
     const table = tables.find(t => t.id === tableId);
     if (!table) return;
 
@@ -488,97 +726,259 @@ async function openTableSheet(tableId) {
     guests.forEach(g => g.members.forEach(m => allMembers.push({ ...m, guestName: g.display_name })));
     const seatedHere = allMembers.filter(m => m.table_id === tableId);
 
-    document.getElementById('tableSheetTitle').innerText = `Սեղ. ${table.table_number} — ${seatedHere.length}/${table.capacity}`;
+    document.getElementById('tableSheetTitle').innerText = `Սեղան ${table.table_number} — Թերթիկ 📋`;
     const body = document.getElementById('tableSheetBody');
     body.innerHTML = '';
 
-    if (seatedHere.length === 0) {
-        body.innerHTML = '<p class="text-center text-[#8c7b66] text-sm italic py-6">Դեռ ոչ ոք 🍃</p>';
-    }
-    seatedHere.forEach((m, idx) => {
-        const row = document.createElement('div');
-        row.className = 'flex items-center gap-2.5 p-2.5 rounded-lg border border-[#e8ddd0] bg-white';
-        row.innerHTML = `
-            <div style="width:24px;height:24px;border-radius:50%;background:#1a1612;color:#e8d5b0;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Cormorant Garamond',serif">${idx+1}</div>
-            <span class="flex-1 text-sm font-medium text-[#1a1612]">${m.first_name || 'Անանուն հյուր'}</span>
-            <button onclick="sheetRename(${m.id},'${(m.first_name||'').replace(/'/g,"\\'")}',this)" class="text-xs text-[#8c7b66] hover:text-[#1a1612] px-1 transition-colors">✏️</button>
-            <button onclick="sheetRemove(${m.id})" class="text-xs text-[#8c7b66] hover:text-[#c4736a] px-1 transition-colors">✕</button>
-        `;
-        body.appendChild(row);
-    });
+    const catLabel = { round: 'Կլոր', rectangle: 'Ուղղ.', double_rectangle: 'Կրկ. Ուղղ.', presidium: 'Պրեզ.' };
+    const summary = document.createElement('div');
+    summary.style.cssText = 'font-size:11px;color:var(--light-mid);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between';
+    summary.innerHTML = `<span>${catLabel[table.category]} — ${table.capacity} տեղ</span><span>${seatedHere.length} / ${table.capacity} զբաղ.</span>`;
+    body.appendChild(summary);
 
-    const freeCount = table.capacity - seatedHere.length;
-    for (let i = 0; i < freeCount; i++) {
-        const row = document.createElement('div');
-        row.className = 'flex items-center gap-2.5 p-2.5 rounded-lg border border-dashed border-[#e8ddd0] opacity-50';
-        row.innerHTML = `
-            <div style="width:24px;height:24px;border-radius:50%;background:var(--cream,#f7f3ee);color:#8c7b66;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px dashed #e8ddd0">—</div>
-            <span class="flex-1 text-xs text-[#8c7b66] italic">Ազատ տեղ</span>
-            <button onclick="openGuestPicker(${tableId});closeModal('tableSheetModal')" class="text-xs text-[#c9a96e] hover:text-[#1a1612] px-1 transition-colors">＋</button>
-        `;
-        body.appendChild(row);
+    // 1. ՆՍՏԵՑՎԱԾ ՀՅՈՒՐԵՐԻ ՑՈՒՑԱԿԸ
+    if (seatedHere.length === 0 && table.capacity === 0) {
+        body.innerHTML += `<div class="modal-empty">Այս սեղանի շուրջ դեռ ոչ ոք նստած չէ 🍃</div>`;
+    } else {
+        seatedHere.forEach((m, idx) => {
+            const row = document.createElement('div');
+            row.className = 'sheet-seat-row';
+            row.style.cssText = 'display:flex;align-items:center;justify-content:between;margin-bottom:6px;padding:6px 8px;background:rgba(0,0,0,0.02);border-radius:6px;';
+            row.innerHTML = `
+                <div class="sheet-seat-num" style="font-weight:bold;color:var(--gold);width:20px;">${idx + 1}</div>
+                <div class="sheet-seat-name" style="flex:1;font-size:12px;font-weight:500;">👤 ${m.first_name || 'Անանուն հյուր'}</div>
+                <div class="sheet-actions" style="display:flex;gap:4px;">
+                    <button class="sheet-btn" style="background:none;border:none;cursor:pointer;padding:2px 6px;" onclick="sheetRename(${m.id}, '${(m.first_name||'').replace(/'/g,"\\'")}')">✏️</button>
+                    <button class="sheet-btn danger" style="background:none;border:none;cursor:pointer;padding:2px 6px;color:#c4736a;" onclick="sheetRemove(${m.id})">✕</button>
+                </div>
+            `;
+            body.appendChild(row);
+        });
     }
+
+    // 2. ԱԶԱՏ ՏԵՂԵՐԻ ԳԵՂԵՑԻԿ ՑՈՒՑԱԴՐՈՒՄԸ (UX/UI ԲԱՐԵԼԱՎՈՒՄ)
+    const freeCount = table.capacity - seatedHere.length;
+    if (freeCount > 0) {
+        // Ստեղծում ենք բաժանարար գիծ ազատ տեղերի համար
+        const freeTitle = document.createElement('div');
+        freeTitle.style.cssText = 'font-size:10px;color:#8c7b66;text-transform:uppercase;letter-spacing:1px;margin-top:14px;margin-bottom:8px;font-weight:bold;';
+        freeTitle.innerText = `Ազատ տեղեր (${freeCount})`;
+        body.appendChild(freeTitle);
+
+        for (let i = 0; i < freeCount; i++) {
+            const row = document.createElement('div');
+            // Սարքում ենք կետագծերով (dashed), նուրբ կոճակ, որը հուշում է, որ այն դատարկ է ու սեղմվող է
+            row.style.cssText = 'display:flex;align-items:center;justify-content:between;margin-bottom:6px;padding:8px;border:1px dashed #c9a96e;background:rgba(201,169,110,0.03);border-radius:8px;cursor:pointer;transition:all 0.2s;';
+
+            // Էֆեկտներ մկնիկը վրան բերելիս (hover)
+            row.onmouseover = () => { row.style.background = 'rgba(201,169,110,0.09)'; row.style.borderColor = '#1a1612'; };
+            row.onmouseout = () => { row.style.background = 'rgba(201,169,110,0.03)'; row.style.borderColor = '#c9a96e'; };
+
+            // Քլիքի իրադարձությունը
+            row.onclick = () => { openGuestPicker(tableId); closeModal('tableSheetModal'); };
+
+            row.innerHTML = `
+                <div style="display:flex;align-items:center;gap:8px;flex:1;">
+                    <div style="width:18px;height:18px;border-radius:50%;border:1px dashed #c9a96e;display:flex;align-items:center;justify-content:center;font-size:9px;color:#c9a96e;">🪑</div>
+                    <div style="font-size:11.5px;color:#8c7b66;font-style:italic;">Դատարկ աթոռ</div>
+                </div>
+                <div style="font-size:11px;color:#c9a96e;font-weight:bold;display:flex;align-items:center;gap:2px;">
+                    Ընտրել հյուր <span style="font-size:13px;">→</span>
+                </div>
+            `;
+            body.appendChild(row);
+        }
+    }
+
     openModal('tableSheetModal');
 }
 
-async function sheetRename(id, oldName) {
-    const n = prompt('Հյուրի անունը:', oldName);
-    if (n === null) return;
-    const res = await fetch(`/api/v1/guest-members/${id}/name?first_name=${encodeURIComponent(n)}`, { method: 'PUT' });
-    if (res.ok) { closeModal('tableSheetModal'); loadTables(); loadGuests(); loadUnseated(); }
+// ── ԹԵՐԹԻԿԻ ՄԻՋԻՑ ԱՆՈՒՆ ՓՈԽԵԼ (RENAME) ──
+// ── ԹԱՐՄԱՑՎԱԾ ԱՆՎԱՆԱՓՈԽՈՒԹՅՈՒՆ ԲՈԼՈՐ ՀԱՏՎԱԾՆԵՐԻ ՀԱՄԱՐ ──
+function sheetRename(id, oldName) {
+    const input = document.getElementById('renameMemberInput');
+    input.value = oldName;
+    openModal('renameMemberModal');
+
+    setTimeout(() => input.focus(), 100);
+
+    document.getElementById('updateConfirmBtn').onclick = async () => {
+        const newName = input.value.trim();
+        if (!newName) return;
+
+        const res = await fetch(`/api/v1/guest-members/${id}/name?first_name=${encodeURIComponent(newName)}`, { method: 'PUT' });
+        if (res.ok) {
+            closeModal('renameMemberModal');
+            closeModal('tableSheetModal');
+
+            // 1. Թարմացնում ենք անունը գլոբալ `globalAllGuests` զանգվածի մեջ (որ ձախ ու աջ կողմերը միանգամից տեսնեն)
+            globalAllGuests.forEach(guest => {
+                if (guest.members) {
+                    const member = guest.members.find(m => m.id === id);
+                    if (member) {
+                        member.first_name = newName;
+                    }
+                }
+            });
+
+            // 2. Թարմացնում ենք անունը գլոբալ `globalUnseatedMembers` զանգվածի մեջ (եթե այնտեղ կա)
+            if (globalUnseatedMembers) {
+                const unseatedMember = globalUnseatedMembers.find(m => m.id === id);
+                if (unseatedMember) {
+                    unseatedMember.first_name = newName;
+                }
+            }
+
+            // 3. Վերագծում ենք բոլոր 3 կոմպոնենտները արդեն թարմացված տվյալներով
+            loadTables();    // Սեղանների վրայի աթոռները
+            loadGuests();    // Ձախ կողմի հիմնական ցուցակը
+            loadUnseated();  // Աջ կողմի չնստեցվածների հատվածը
+        }
+    };
 }
-async function sheetRemove(memberId) {
-    if (!confirm('Հեռացնե՞լ սեղանից։')) return;
-    await fetch(`/api/v1/guest-members/${memberId}/seat`, { method: 'PUT' });
-    closeModal('tableSheetModal'); loadTables(); loadUnseated();
+// ── ԹԵՐԹԻԿԻ ՄԻՋԻՑ ՀԵՌԱՑՆԵԼ ──
+function sheetRemove(memberId) {
+    document.getElementById('confirmDeleteText').innerText = 'Հեռացնե՞լ այս հյուրին սեղանից։';
+    openModal('confirmDeleteModal');
+
+    document.getElementById('executeDeleteBtn').onclick = async () => {
+        await fetch(`/api/v1/guest-members/${memberId}/seat`, { method: 'PUT' });
+        closeModal('confirmDeleteModal');
+        closeModal('tableSheetModal'); // Փակում ենք թերթիկը, որ թարմ տվյալներով հետո բացվի
+        loadTables();
+        loadUnseated();
+    };
 }
 
 // ── SINGLE CHAIR PICKER ──
+// ── SINGLE CHAIR PICKER (ԱՎԵԼԻ ԱՊԱՀՈՎ ՏԱՐԲԵՐԱԿ) ──
 function openGuestPicker(tableId) {
     pendingSeatTableId = tableId;
     const list = document.getElementById('guestPickerList');
     list.innerHTML = '';
+
     if (globalUnseatedMembers.length === 0) {
         list.innerHTML = '<p class="text-center text-[#8c7b66] text-sm italic py-6">Չնստեցված հյուրեր չկան 🎉</p>';
-    } else {
-        globalUnseatedMembers.forEach(m => {
-            const btn = document.createElement('button');
-            btn.className = 'w-full text-left px-3 py-2.5 rounded-lg border border-[#e8ddd0] bg-white text-sm font-medium text-[#1a1612] flex justify-between items-center hover:border-[#c9a96e] hover:bg-[#c9a96e]/5 transition-all';
-            btn.innerHTML = `<span>👤 ${m.first_name || 'Անանուն հյուր'}</span><span class="text-[#c9a96e] text-base">+</span>`;
-            btn.onclick = async () => { await seatMemberOnTable(m.id, tableId); closeModal('guestPickerModal'); };
-            list.appendChild(btn);
-        });
+        openModal('guestPickerModal');
+        return;
     }
+
+    const unseatedIds = new Set(globalUnseatedMembers.map(m => m.id.toString()));
+    let hasVisibleGroups = false;
+
+    globalAllGuests.forEach(guest => {
+        const guestUnseated = guest.members.filter(m => unseatedIds.has(m.id.toString()));
+
+        if (guestUnseated.length > 0) {
+            hasVisibleGroups = true;
+
+            const groupHeader = document.createElement('div');
+            groupHeader.className = "text-[11px] font-bold text-[#8c7b66] uppercase tracking-wider mt-3 mb-1 px-1";
+            groupHeader.innerText = guest.display_name;
+            list.appendChild(groupHeader);
+
+            guestUnseated.forEach(m => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-left px-3 py-2 rounded-lg border border-[#e8ddd0] bg-white text-xs font-medium text-[#1a1612] flex justify-between items-center hover:border-[#c9a96e] hover:bg-[#c9a96e]/5 transition-all mb-1 last:mb-2';
+                btn.innerHTML = `<span>👤 ${m.first_name || 'Անանուն հյուր'}</span><span class="text-[#c9a96e] font-bold text-sm">+</span>`;
+
+                // Օգտագործում ենք addEventListener՝ inline onclick-ի սխալներից խուսափելու համար
+                btn.addEventListener('click', async () => {
+                    try {
+                        console.log(`Նստեցնում ենք հյուրին: Member ID: ${m.id}, Table ID: ${tableId}`);
+                        await seatMemberOnTable(m.id, tableId);
+                        closeModal('guestPickerModal');
+                    } catch (error) {
+                        console.error("Նստեցնելու ընթացքում սխալ առաջացավ:", error);
+                    }
+                });
+
+                list.appendChild(btn);
+            });
+        }
+    });
+
+    if (!hasVisibleGroups) {
+        list.innerHTML = '<p class="text-center text-[#8c7b66] text-sm italic py-6">Չնստեցված հյուրեր չկան 🎉</p>';
+    }
+
     openModal('guestPickerModal');
 }
-
+// ── ԱՎԵԼԱՑՐՈՒ ԱՅՍ ՖՈՒՆԿՑԻԱՆ ──
 async function seatMemberOnTable(memberId, tableId) {
     const res = await fetch(`/api/v1/guest-members/${memberId}/seat?table_id=${tableId}`, { method: 'PUT' });
-    if (!res.ok) { const err = await res.json().catch(() => ({})); alert(err.detail || 'Ազատ տեղ չկա'); }
-    else { loadTables(); loadUnseated(); }
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.detail || 'Ազատ տեղ չկա կամ սխալ կատարվեց');
+    } else {
+        loadTables();
+        loadUnseated();
+        loadGuests();
+    }
 }
 
+// ── ԱԹՈՌԻ ՎՐԱ ՍԵՂՄԵԼԻՍ (ՀԵՌԱՑՆԵԼ ՍԵՂԱՆԻՑ) ──
+// ── ԹԱՐՄԱՑՎԱԾ ԱԹՈՌԻ ՔԼԻՔԻ ՏՐԱՄԱԲԱՆՈՒԹՅՈՒՆԸ ──
 function manageSeatedMember(member) {
-    if (confirm(`«${member.first_name || 'Անանուն'}» — հեռացնե՞լ սեղանից։`)) {
-        fetch(`/api/v1/guest-members/${member.id}/seat`, { method: 'PUT' })
-            .then(() => { loadTables(); loadUnseated(); });
-    }
+    // 1. Փոխում ենք մոդալի վերնագիրը հյուրի անունով
+    document.getElementById('chairActionsTitle').innerText = member.first_name || 'Անանուն հյուր';
+
+    // 2. Կապում ենք Անուն Փոխելու (Rename) կոճակը մեր արդեն պատրաստի sheetRename մոդալի հետ
+    document.getElementById('chairActionRenameBtn').onclick = () => {
+        closeModal('chairActionsModal');
+        sheetRename(member.id, member.first_name || '');
+    };
+
+    // 3. Կապում ենք Հեռացնելու կոճակը confirmDeleteModal-ի հետ
+    document.getElementById('chairActionUnseatBtn').onclick = () => {
+        closeModal('chairActionsModal');
+
+        document.getElementById('confirmDeleteText').innerText = `«${member.first_name || 'Անանուն'}» — հեռացնե՞լ սեղանից։`;
+        openModal('confirmDeleteModal');
+
+        document.getElementById('executeDeleteBtn').onclick = async () => {
+            await fetch(`/api/v1/guest-members/${member.id}/seat`, { method: 'PUT' });
+            closeModal('confirmDeleteModal');
+            loadTables();
+            loadUnseated();
+        };
+    };
+
+    // 4. Բացում ենք ընտրության մոդալը
+    openModal('chairActionsModal');
 }
 
 // ── GUESTS LIST ──
+// ── GUESTS LIST (FETCH & RENDER) ──
 async function loadGuests() {
     const res = await fetch(`/api/v1/guests/wedding/${weddingId}`);
-    const container = document.getElementById('guestsContainer');
-    if (!res.ok) { container.innerHTML = '<p class="text-center text-[#8c7b66] text-xs italic py-6">Սխալ</p>'; return; }
+    if (!res.ok) {
+        document.getElementById('guestsContainer').innerHTML = '<p class="text-center text-[#8c7b66] text-xs italic py-6">Սխալ</p>';
+        return;
+    }
     const guests = await res.json();
     globalAllGuests = guests;
 
-    if (guests.length === 0) {
+    renderGuestsList();
+}
+
+function renderGuestsList() {
+    const container = document.getElementById('guestsContainer');
+    if (!container) return;
+
+    if (globalAllGuests.length === 0) {
         container.innerHTML = '<p class="text-center text-[#8c7b66] text-xs italic py-6">Ավելացրեք հյուրեր ↑</p>';
         return;
     }
+
     container.innerHTML = '';
-    guests.forEach(guest => {
+
+    globalAllGuests.forEach(guest => {
+        // ԱՀԱ ԱՅՍՏԵՂ Է ՔՈ ՈՒԶԱԾ ՏՈՂԸ` ԱՎՏՈՄԱՏ ԴՐՎԱԾ ԼՈՒՊԻ ՍԿԶԲՈՒՄ
+        if (typeof currentMainFilter !== 'undefined' && currentMainFilter !== 'all' && guest.side !== currentMainFilter) {
+            return;
+        }
+
         const sideCls = { bride: 'bg-[#c4736a]/10 text-[#c4736a]', groom: 'bg-[#7a9e7e]/10 text-[#7a9e7e]', mutual: 'bg-[#c9a96e]/15 text-[#8a6c30]' }[guest.side] || '';
         const sideIcon = { bride: '👰', groom: '🤵', mutual: '🤝' }[guest.side] || '';
 
@@ -605,7 +1005,7 @@ async function loadGuests() {
                 row.innerHTML = `
                     <span class="flex-1">${m.first_name || '(Անանուն)'}</span>
                     ${m.table_id ? '<span class="text-[9px] bg-[#7a9e7e]/10 text-[#7a9e7e] px-1.5 py-0.5 rounded-full">✓ Նստ.</span>' : ''}
-                    <button onclick="quickRenameMember(${m.id},'${(m.first_name||'').replace(/'/g,"\\'")}')\" class="text-[#8c7b66] hover:text-[#1a1612] ml-1 transition-colors">✏</button>
+                    <button onclick="quickRenameMember(${m.id},'${(m.first_name||'').replace(/'/g,"\\'")}')" class="text-[#8c7b66] hover:text-[#1a1612] ml-1 transition-colors">✏</button>
                 `;
                 membersDiv.appendChild(row);
             });
@@ -613,7 +1013,12 @@ async function loadGuests() {
         }
         container.appendChild(card);
     });
+
+    if (container.innerHTML === '') {
+        container.innerHTML = '<p class="text-center text-[#8c7b66] text-xs italic py-6">Այս կողմից հյուրեր չկան 🍃</p>';
+    }
 }
+
 
 async function addGuest() {
     const name = document.getElementById('guestName').value.trim();
@@ -627,10 +1032,28 @@ async function addGuest() {
     if (res.ok) { document.getElementById('guestName').value = ''; document.getElementById('guestCount').value = 1; loadGuests(); loadUnseated(); }
 }
 
-async function deleteGuest(id) {
-    if (!confirm('Ջնջե՞լ հրավերը։')) return;
-    await fetch(`/api/v1/guests/${id}`, { method: 'DELETE' });
-    loadGuests(); loadUnseated(); loadTables();
+// ԱՎԵԼԱՑՐՈՒ ԱՅՍ ԹԱՐՄԱՑՎԱԾ ՏԱՐԲԵՐԱԿԸ
+function deleteGuest(id) {
+    // 1. Մոդալի տեքստը սարքում ենք հայերեն ու սիրուն
+    document.getElementById('confirmDeleteText').innerText = "Ցանկանո՞ւմ եք ջնջել այս հրավերը և հեռացնել բոլոր անդամներին։";
+
+    // 2. Բացում ենք քո պատրաստի սիրուն մոդալը
+    openModal('confirmDeleteModal');
+
+    // 3. Կապում ենք մոդալի «Ջնջել» կոճակի քլիքը API հարցման հետ
+    document.getElementById('executeDeleteBtn').onclick = async () => {
+        const res = await fetch(`/api/v1/guests/${id}`, { method: 'DELETE' });
+
+        if (res.ok) {
+            closeModal('confirmDeleteModal');
+            // Թարմացնում ենք էկրանի բոլոր 3 մասերը
+            loadGuests();
+            loadUnseated();
+            loadTables();
+        } else {
+            alert('Չհաջողվեց ջնջել հրավերը');
+        }
+    };
 }
 
 async function quickRenameMember(id, old) {
@@ -658,6 +1081,7 @@ async function mergeSelectedGuests() {
 }
 
 // ── UNSEATED (GROUP) ──
+// ── UNSEATED (FETCH & ORCHESTRATE) ──
 async function loadUnseated() {
     const [gR, uR] = await Promise.all([
         fetch(`/api/v1/guests/wedding/${weddingId}`),
@@ -666,19 +1090,35 @@ async function loadUnseated() {
     const container = document.getElementById('unseatedContainer');
     if (!gR.ok || !uR.ok) { container.innerHTML = '<p class="text-center text-[#8c7b66] text-xs italic py-6">Սխալ</p>'; return; }
 
-    const allGuests = await gR.json();
-    globalAllGuests = allGuests;
+    globalAllGuests = await gR.json();
     globalUnseatedMembers = await uR.json();
+
+    renderUnseatedList();
+}
+
+function renderUnseatedList() {
+    const container = document.getElementById('unseatedContainer');
+    if (!container) return;
+
     const unseatedIds = new Set(globalUnseatedMembers.map(m => m.id));
 
-    const totalMembers = allGuests.reduce((s, g) => s + g.total_count, 0);
+    const totalMembers = globalAllGuests.reduce((s, g) => s + g.total_count, 0);
     const unseatedCount = globalUnseatedMembers.length;
     document.getElementById('unseatedSummary').innerText = `${totalMembers - unseatedCount} / ${totalMembers} հոգի նստեցված`;
 
-    if (allGuests.length === 0) { container.innerHTML = '<p class="text-center text-[#8c7b66] text-xs italic py-6">Ավելացրեք հյուրեր ←</p>'; return; }
+    if (globalAllGuests.length === 0) {
+        container.innerHTML = '<p class="text-center text-[#8c7b66] text-xs italic py-6">Ավելացրեք հյուրեր ←</p>';
+        return;
+    }
 
     container.innerHTML = '';
-    allGuests.forEach(guest => {
+
+    globalAllGuests.forEach(guest => {
+        // ԱՀԱ ԱՅՍՏԵՂ ԷԼ ԱՋ ԿՈՂՄԻ ՍՏՈՒԳՈՒՄՆ Է ԴՐՎԱԾ ԼՈՒՊԻ ՄԵՋ (ԸՍՏ ԽՄԲԻ ԿՈՂՄԻ)
+        if (typeof currentUnseatedFilter !== 'undefined' && currentUnseatedFilter !== 'all' && guest.side !== currentUnseatedFilter) {
+            return;
+        }
+
         const guestUnseated = guest.members.filter(m => unseatedIds.has(m.id));
         const total = guest.members.length;
         const unseatCount = guestUnseated.length;
@@ -723,8 +1163,11 @@ async function loadUnseated() {
         card.appendChild(expandDiv);
         container.appendChild(card);
     });
-}
 
+    if (container.innerHTML === '') {
+        container.innerHTML = '<p class="text-center text-[#8c7b66] text-xs italic py-6">Այս կողմից չնստեցված հյուրեր չկան 🍃</p>';
+    }
+}
 async function unseatMember(memberId) {
     await fetch(`/api/v1/guest-members/${memberId}/seat`, { method: 'PUT' });
     loadTables(); loadUnseated();
@@ -814,6 +1257,52 @@ async function seatGroupOnTable(guestInfo, count, tableId) {
     loadTables(); loadUnseated(); loadGuests();
 }
 
+
+// Գլոբալ փոփոխականներ ֆիլտրերի վիճակը պահելու համար
+let currentMainFilter = 'all';      // 'all' | 'bride' | 'groom'
+let currentUnseatedFilter = 'all';  // 'all' | 'bride' | 'groom'
+
+// ── 1. ՁԱԽ ԿՈՂՄԻ ՖԻԼՏՐԱՑԻԱ (Main Guests List) ──
+function filterMainGuests(side) {
+    currentMainFilter = side;
+
+    // Կոճակների ակտիվ/պասիվ ոճերը փոխելու տրամաբանությունը
+    ['all', 'bride', 'groom'].forEach(s => {
+        const btn = document.getElementById(`btnMainFilter-${s}`);
+        if (!btn) return;
+        if (s === side) {
+            btn.className = "flex-1 py-1.5 text-[11px] font-semibold rounded-lg transition-all bg-[#1a1612] text-[#e8d5b0] shadow-sm";
+        } else {
+            btn.className = "flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] hover:bg-[#f7f3ee] transition-all";
+        }
+    });
+
+    // Կանչում ենք գծելու ֆունկցիան, որը հաշվի կառնի currentMainFilter-ը
+    renderGuestsList();
+}
+
+// ── 2. ԱՋ ԿՈՂՄԻ ՖԻԼՏՐԱՑԻԱ (Unseated Members List) ──
+function filterUnseatedMembers(side) {
+    currentUnseatedFilter = side;
+
+    // Կոճակների ակտիվ/պասիվ ոճերը փոխելու տրամաբանությունը
+    ['all', 'bride', 'groom'].forEach(s => {
+        const btn = document.getElementById(`btnUnseatedFilter-${s}`);
+        if (!btn) return;
+        if (s === side) {
+            btn.className = "flex-1 py-1.5 text-[11px] font-semibold rounded-lg transition-all bg-[#1a1612] text-[#e8d5b0] shadow-sm";
+        } else {
+            btn.className = "flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] hover:bg-[#f7f3ee] transition-all";
+        }
+    });
+
+    // Կանչում ենք գծելու ֆունկցիան, որը հաշվի կառնի currentUnseatedFilter-ը
+    renderUnseatedList();
+}
+
+
+
+
 // ── MODAL HELPERS ──
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
@@ -822,8 +1311,21 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
         if (document.activeElement.id === 'guestName') addGuest();
         if (document.activeElement.id === 'newTableNumber') confirmAddTable();
+
+        if (document.getElementById('editCapacityModal').classList.contains('open')) confirmEditCapacity();
+
+        // Եթե անուն փոխելու պատուհանն է բաց, Enter սեղմելիս կկատարի Թարմացնել կոճակի քլիքը
+        if (document.getElementById('renameMemberModal').classList.contains('open')) {
+            document.getElementById('updateConfirmBtn').click();
+        }
     }
-    if (e.key === 'Escape') ['addTableModal','seatCountModal','tablePickerModal','guestPickerModal','tableSheetModal'].forEach(closeModal);
+    if (e.key === 'Escape') {
+    [
+        'addTableModal', 'seatCountModal', 'tablePickerModal',
+        'guestPickerModal', 'tableSheetModal', 'editCapacityModal',
+        'confirmDeleteModal', 'renameMemberModal', 'chairActionsModal'
+    ].forEach(closeModal);
+}
 });
 </script>
 </body>
