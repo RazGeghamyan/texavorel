@@ -957,13 +957,43 @@ function openGuestPicker(tableId) {
 }
 
 async function seatMemberOnTable(memberId, tableId) {
-    const res = await fetch(`/api/v1/guest-members/${memberId}/seat?table_id=${tableId}`, { method: 'PUT' });
+    const seatIndex = await findNextFreeSeat(tableId);
+    if (seatIndex === null) {
+        alert('Ազատ տեղ չկա այս սեղանի մոտ։');
+        return;
+    }
+    const res = await fetch(
+        `/api/v1/guest-members/${memberId}/seat?table_id=${tableId}&seat_index=${seatIndex}`,
+        { method: 'PUT' }
+    );
     if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         alert(err.detail || 'Ազատ տեղ չկա կամ սխալ կատարվեց');
     } else {
         loadTables(); loadUnseated(); loadGuests();
     }
+}
+
+async function findNextFreeSeat(tableId) {
+    const tableRes = await fetch(`/api/v1/tables/wedding/${weddingId}`);
+    if (!tableRes.ok) return null;
+    const tables = await tableRes.json();
+    const table = tables.find(t => t.id === tableId);
+    if (!table) return null;
+
+    const membersRes = await fetch(`/api/v1/guest-members/wedding/${weddingId}`);
+    if (!membersRes.ok) return null;
+    const allMembers = await membersRes.json();
+    const occupiedSeats = new Set(
+        allMembers
+            .filter(m => m.table_id === tableId && m.seat_index != null)
+            .map(m => m.seat_index)
+    );
+
+    for (let i = 0; i < table.capacity; i++) {
+        if (!occupiedSeats.has(i)) return i;
+    }
+    return null;
 }
 
 // ── SEATED CHAIR CLICK ──
@@ -1313,7 +1343,15 @@ async function openTablePicker(guestInfo, count) {
 
 async function seatGroupOnTable(guestInfo, count, tableId) {
     for (const member of guestInfo.unseatedMembers.slice(0, count)) {
-        const res = await fetch(`/api/v1/guest-members/${member.id}/seat?table_id=${tableId}`, { method: 'PUT' });
+        const seatIndex = await findNextFreeSeat(tableId);
+        if (seatIndex === null) {
+            alert('Ազատ տեղ չկա կամ լրացավ սեղանը։');
+            break;
+        }
+        const res = await fetch(
+            `/api/v1/guest-members/${member.id}/seat?table_id=${tableId}&seat_index=${seatIndex}`,
+            { method: 'PUT' }
+        );
         if (!res.ok) { const err = await res.json().catch(() => ({})); alert(err.detail || 'Սխալ'); break; }
     }
     loadTables(); loadUnseated(); loadGuests();
