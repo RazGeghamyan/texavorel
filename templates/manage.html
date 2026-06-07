@@ -334,10 +334,9 @@
 <script>
 const weddingId = {{ wedding_id }};
 let zoomScale = 1.0;
-// 💡 Ավելացնում ենք կտավի (Pan/Scroll) դիրքի փոփոխականները
 let isPanning = false;
 let panStart = { x: 0, y: 0 };
-let panOffset = { x: 0, y: 0 }; // Այս պահին կտավի ունեցած շեղումը
+let panOffset = { x: 0, y: 0 };
 let activeMovingTable = null;
 let dragOffset = { x: 0, y: 0 };
 let globalUnseatedMembers = [];
@@ -348,6 +347,7 @@ let pendingSeatCount = 1;
 let pendingSeatTableId = null;
 let pendingSeatIndex = null;
 const tablePositions = {};
+const tableRotations = {};
 
 let pendingNewCategory = null;
 let pendingNewCapacity = 10;
@@ -359,6 +359,29 @@ document.addEventListener('DOMContentLoaded', () => {
     loadGuests();
     loadTables();
     loadUnseated();
+
+    // Pan & Wheel Zoom setup
+    const container = document.getElementById('hallContainer');
+    if (container) {
+        container.addEventListener('mousedown', (e) => {
+            if (e.target.closest('.movable-table') || e.target.closest('.chair') || e.target.tagName === 'BUTTON') return;
+            isPanning = true;
+            container.style.cursor = 'grabbing';
+            panStart.x = e.clientX - panOffset.x;
+            panStart.y = e.clientY - panOffset.y;
+        });
+
+        container.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomFactor = 1.08;
+            if (e.deltaY < 0) {
+                zoomScale = Math.min(2.5, zoomScale * zoomFactor);
+            } else {
+                zoomScale = Math.max(0.3, zoomScale / zoomFactor);
+            }
+            updateCanvasTransform();
+        }, { passive: false });
+    }
 });
 
 // ── WEDDING ──
@@ -371,11 +394,12 @@ async function loadWeddingDetails() {
     }
 }
 
-// ── ZOOM ──
 // ── ZOOM & PAN RENDER ──
 function updateCanvasTransform() {
     const wrapper = document.getElementById('zoomWrapper');
-    wrapper.style.transform = `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomScale})`;
+    if (wrapper) {
+        wrapper.style.transform = `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomScale})`;
+    }
 }
 
 function zoomHall(f) {
@@ -385,7 +409,7 @@ function zoomHall(f) {
 
 function resetZoom() {
     zoomScale = 1.0;
-    panOffset = { x: 0, y: 0 }; // Զրոյացնում ենք նաև տեղաշարժը
+    panOffset = { x: 0, y: 0 };
     updateCanvasTransform();
 }
 
@@ -449,9 +473,6 @@ async function confirmAddTable() {
 async function loadTables() {
     const res = await fetch(`/api/v1/tables/wedding/${weddingId}`);
     const wrapper = document.getElementById('zoomWrapper');
-
-    // ❌ Այստեղից ջնջեցինք wrapper.innerHTML = ''; տողը, որպեսզի սպասելիս map-ը չանհետանա
-
     if (!res.ok) return;
     const tables = await res.json();
 
@@ -462,9 +483,7 @@ async function loadTables() {
         guests.forEach(g => g.members.forEach(m => allMembers.push(m)));
     }
 
-    // ✅ Մաքրում ենք միայն հիմա՝ հարցումներից ՀԵՏՈ, հենց նոր սեղանները նկարելուց առաջ
     wrapper.innerHTML = '';
-
     tables.forEach((table, index) => wrapper.appendChild(buildTableElement(table, allMembers, index)));
 }
 
@@ -484,7 +503,6 @@ function getTableDimensions(category, capacity = 10) {
             return { w: 300 + Math.ceil(extra / 2) * 40, h: 110 };
         }
         case 'presidium': {
-            // 💡 6 հոգու համար սկսում ենք 240px-ից, իսկ ամեն ավել աթոռի համար լայնացնում ենք 40px-ով
             const extra = Math.max(0, capacity - 6);
             return { w: 240 + extra * 40, h: 70 };
         }
@@ -507,6 +525,11 @@ function buildTableElement(table, allMembers, index) {
     tDiv.style.width  = dim.w + 'px';
     tDiv.style.height = dim.h + 'px';
 
+    if (tableRotations[table.id] === undefined) {
+        tableRotations[table.id] = 0;
+    }
+    tDiv.style.transform = `rotate(${tableRotations[table.id]}deg)`;
+
     const body = document.createElement('div');
     body.className = 'table-inner';
     body.style.cssText = [
@@ -528,80 +551,127 @@ function buildTableElement(table, allMembers, index) {
     const actions = document.createElement('div');
     actions.className = 'table-actions absolute top-full mt-10 left-0 w-full flex justify-center gap-1.5 z-30 whitespace-nowrap pointer-events-auto';
     actions.innerHTML = `
+        <button onclick="event.stopPropagation();rotateTable(${table.id}, -45)"
+            class="bg-white border border-[#e8ddd0] hover:border-[#c9a96e] rounded-md text-[10px] font-medium text-[#5c4f3d] shadow-sm cursor-pointer transition-all duration-150 flex items-center justify-center"
+            style="width:28px;height:24px;padding:0;" title="Պտտել ձախ">↩️</button>
         <button onclick="event.stopPropagation();openTableSheet(${table.id})"
-            class="bg-white border border-[#e8ddd0] hover:border-[#c9a96e] rounded-md text-[10px] font-medium text-[#5c4f3d] font-['DM_Sans'] shadow-sm cursor-pointer transition-all duration-150 flex items-center justify-center gap-1"
+            class="bg-white border border-[#e8ddd0] hover:border-[#c9a96e] rounded-md text-[10px] font-medium text-[#5c4f3d] shadow-sm cursor-pointer transition-all duration-150 flex items-center justify-center gap-1"
             style="width:76px;height:24px;padding:0;">📋 Թերթիկ</button>
         <button onclick="event.stopPropagation();editTableCapacity(${table.id},${table.capacity})"
-            class="bg-white border border-[#e8ddd0] hover:border-[#c9a96e] rounded-md text-[10px] font-medium text-[#5c4f3d] font-['DM_Sans'] shadow-sm cursor-pointer transition-all duration-150 flex items-center justify-center gap-1"
+            class="bg-white border border-[#e8ddd0] hover:border-[#c9a96e] rounded-md text-[10px] font-medium text-[#5c4f3d] shadow-sm cursor-pointer transition-all duration-150 flex items-center justify-center gap-1"
             style="width:64px;height:24px;padding:0;">✏️ Աթոռ</button>
+        <button onclick="event.stopPropagation();rotateTable(${table.id}, 45)"
+            class="bg-white border border-[#e8ddd0] hover:border-[#c9a96e] rounded-md text-[10px] font-medium text-[#5c4f3d] shadow-sm cursor-pointer transition-all duration-150 flex items-center justify-center"
+            style="width:28px;height:24px;padding:0;" title="Պտտել աջ">↪️</button>
         <button onclick="event.stopPropagation();deleteTable(${table.id})"
-            class="bg-white border border-[#e8ddd0] hover:text-[#c4736a] hover:border-[#c4736a] rounded-md text-[10px] font-medium text-[#5c4f3d] font-['DM_Sans'] shadow-sm cursor-pointer transition-all duration-150 flex items-center justify-center"
+            class="bg-white border border-[#e8ddd0] hover:text-[#c4736a] hover:border-[#c4736a] rounded-md text-[10px] font-medium text-[#5c4f3d] shadow-sm cursor-pointer transition-all duration-150 flex items-center justify-center"
             style="width:32px;height:24px;padding:0;">🗑️</button>
     `;
 
     tDiv.appendChild(body);
     tDiv.appendChild(actions);
 
-    // Chairs
-const seatedHere = allMembers.filter(m => m.table_id === table.id);
-
-    // 📌 Առանձնացնում ենք այն հյուրերին, ովքեր դեռ կոնկրետ ամրագրված աթոռ չունեն
+    const seatedHere = allMembers.filter(m => m.table_id === table.id);
     const autoMembers = seatedHere.filter(m => m.seat_index == null);
 
     for (let i = 0; i < table.capacity; i++) {
         const chair = document.createElement('div');
         chair.className = 'chair';
 
-        // 📌 Նախ ստուգում ենք՝ կա՞ հյուր, ում հատկացված է հենց այս (i) աթոռը
         let member = seatedHere.find(m => m.seat_index === i);
-
-        // 📌 Եթե այս աթոռը հատուկ ամրագրված չէ ոչ մեկի համար, և ունենք սպասող «ավտոմատ» հյուրեր
         if (!member && autoMembers.length > 0) {
-            member = autoMembers.shift(); // Վերցնում ենք հերթի առաջինին և հանում ցուցակից
+            member = autoMembers.shift();
         }
 
         if (member) {
-        chair.classList.add('occupied');
-        chair.innerText = member.first_name ? member.first_name.substring(0, 3) : '👤';
-        chair.title = member.first_name || 'Անանուն';
-        chair.onclick = (e) => { e.stopPropagation(); manageSeatedMember(member); };
-    } else {
-        chair.innerText = i + 1;
-        chair.title = 'Ազատ — drag կամ սեղմեք';
-        chair.onclick = (e) => { e.stopPropagation(); openGuestPickerForSeat(table.id, i); }; // ✅ seat_index փոխանցում
-    }
-
-    // ✅ Chair-ը դառնում է drop target
-    chair.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!chair.classList.contains('occupied')) {
-            chair.style.borderColor = '#c9a96e';
-            chair.style.background = 'rgba(201,169,110,0.2)';
+            chair.classList.add('occupied');
+            chair.innerText = member.first_name ? member.first_name.substring(0, 3) : '👤';
+            chair.title = member.first_name || 'Անանուն';
+            chair.onclick = (e) => { e.stopPropagation(); manageSeatedMember(member); };
+        } else {
+            chair.innerText = i + 1;
+            chair.title = 'Ազատ — drag կամ սեղմեք';
+            chair.onclick = (e) => { e.stopPropagation(); openGuestPickerForSeat(table.id, i); };
         }
-    });
-    chair.addEventListener('dragleave', () => {
-        if (!chair.classList.contains('occupied')) {
+
+        chair.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!chair.classList.contains('occupied')) {
+                chair.style.borderColor = '#c9a96e';
+                chair.style.background = 'rgba(201,169,110,0.2)';
+            }
+        });
+        chair.addEventListener('dragleave', () => {
+            if (!chair.classList.contains('occupied')) {
+                chair.style.borderColor = '';
+                chair.style.background = '';
+            }
+        });
+        chair.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             chair.style.borderColor = '';
             chair.style.background = '';
-        }
-    });
-    chair.addEventListener('drop', async (e) => {
+            if (chair.classList.contains('occupied')) return;
+            const memberId = e.dataTransfer.getData('text/plain');
+            if (memberId) await seatMemberOnChair(parseInt(memberId), table.id, i);
+        });
+
+        const pos = getChairPosition(table.category, i, table.capacity, dim);
+        chair.style.left = pos.x + 'px';
+        chair.style.top  = pos.y + 'px';
+        chair.style.transform = `translate(-50%, -50%) rotate(${-tableRotations[table.id]}deg)`;
+
+        body.appendChild(chair);
+    }
+
+    tDiv.addEventListener('mousedown', (e) => {
+        if (e.target.tagName === 'BUTTON' || e.target.classList.contains('chair')) return;
         e.preventDefault();
-        e.stopPropagation();
-        chair.style.borderColor = '';
-        chair.style.background = '';
-        if (chair.classList.contains('occupied')) return; // Զբաղված ատոռ — անտեսել
-        const memberId = e.dataTransfer.getData('text/plain');
-        if (memberId) await seatMemberOnChair(parseInt(memberId), table.id, i); // ✅ seat_index = i
+        activeMovingTable = tDiv;
+        tDiv.classList.add('dragging');
+        const wrapRect = document.getElementById('zoomWrapper').getBoundingClientRect();
+        dragOffset.x = (e.clientX - wrapRect.left) / zoomScale - parseFloat(tDiv.style.left || 0);
+        dragOffset.y = (e.clientY - wrapRect.top)  / zoomScale - parseFloat(tDiv.style.top  || 0);
     });
 
-    const pos = getChairPosition(table.category, i, table.capacity, dim);
-    chair.style.left = pos.x + 'px';
-    chair.style.top  = pos.y + 'px';
-    body.appendChild(chair);
+    tDiv.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        tDiv.classList.add('drag-over');
+    });
+    tDiv.addEventListener('dragleave', (e) => {
+        if (!tDiv.contains(e.relatedTarget)) {
+            tDiv.classList.remove('drag-over');
+        }
+    });
+    tDiv.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        tDiv.classList.remove('drag-over');
+        const memberId = e.dataTransfer.getData('text/plain');
+        if (memberId) await seatMemberOnTable(parseInt(memberId), table.id);
+    });
+
+    return tDiv;
 }
-// ✅ Կոնկրետ ատոռ-ի վրա drop
+
+function rotateTable(tableId, degrees) {
+    if (tableRotations[tableId] === undefined) {
+        tableRotations[tableId] = 0;
+    }
+    tableRotations[tableId] = (tableRotations[tableId] + degrees) % 360;
+    const tableEl = document.querySelector(`[data-table-id="${tableId}"]`);
+    if (tableEl) {
+        tableEl.style.transform = `rotate(${tableRotations[tableId]}deg)`;
+        const chairs = tableEl.querySelectorAll('.chair');
+        chairs.forEach(chair => {
+            chair.style.transform = `translate(-50%, -50%) rotate(${-tableRotations[tableId]}deg)`;
+        });
+    }
+}
+
 async function seatMemberOnChair(memberId, tableId, seatIndex) {
     const res = await fetch(
         `/api/v1/guest-members/${memberId}/seat?table_id=${tableId}&seat_index=${seatIndex}`,
@@ -615,10 +685,9 @@ async function seatMemberOnChair(memberId, tableId, seatIndex) {
     }
 }
 
-// ✅ Կոնկրետ ատոռ-ի վրա click → guest picker, հետո նստեցնում seat_index-ով
 function openGuestPickerForSeat(tableId, seatIndex) {
     pendingSeatTableId = tableId;
-    pendingSeatIndex = seatIndex; // ✅ Global variable պահում ենք
+    pendingSeatIndex = seatIndex;
     const list = document.getElementById('guestPickerList');
     list.innerHTML = '';
 
@@ -644,7 +713,7 @@ function openGuestPickerForSeat(tableId, seatIndex) {
             btn.className = 'w-full text-left px-3 py-2 rounded-lg border border-[#e8ddd0] bg-white text-xs font-medium text-[#1a1612] flex justify-between items-center hover:border-[#c9a96e] hover:bg-[#c9a96e]/5 transition-all mb-1';
             btn.innerHTML = `<span>👤 ${m.first_name || 'Անանուն հյուր'}</span><span class="text-[#c9a96e] font-bold text-sm">+</span>`;
             btn.addEventListener('click', async () => {
-                await seatMemberOnChair(m.id, tableId, seatIndex); // ✅ seat_index-ով
+                await seatMemberOnChair(m.id, tableId, seatIndex);
                 closeModal('guestPickerModal');
             });
             list.appendChild(btn);
@@ -654,113 +723,39 @@ function openGuestPickerForSeat(tableId, seatIndex) {
     openModal('guestPickerModal');
 }
 
-    // ✅ FIX 1: Table drag — zoom-aware using zoomWrapper offset
-    tDiv.addEventListener('mousedown', (e) => {
-        if (e.target.tagName === 'BUTTON' || e.target.classList.contains('chair')) return;
-        e.preventDefault();
-        activeMovingTable = tDiv;
-        tDiv.classList.add('dragging');
-        // Calculate offset relative to zoomWrapper, accounting for zoom scale
-        const wrapRect = document.getElementById('zoomWrapper').getBoundingClientRect();
-        dragOffset.x = (e.clientX - wrapRect.left) / zoomScale - parseFloat(tDiv.style.left || 0);
-        dragOffset.y = (e.clientY - wrapRect.top)  / zoomScale - parseFloat(tDiv.style.top  || 0);
-    });
-
-    // ✅ FIX 2: Guest drop — works through child elements (chairs, labels, etc.)
-    tDiv.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        tDiv.classList.add('drag-over');
-    });
-    tDiv.addEventListener('dragleave', (e) => {
-        // Only remove highlight if mouse truly left tDiv (not just moved to a child)
-        if (!tDiv.contains(e.relatedTarget)) {
-            tDiv.classList.remove('drag-over');
-        }
-    });
-    tDiv.addEventListener('drop', async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        tDiv.classList.remove('drag-over');
-        const memberId = e.dataTransfer.getData('text/plain');
-        if (memberId) await seatMemberOnTable(parseInt(memberId), table.id);
-    });
-
-    return tDiv;
-}
-
 function getChairPosition(category, i, total, dim) {
     const w = dim.w, h = dim.h;
-
-    // 1. Կլոր սեղան
     if (category === 'round') {
         const angle = (i * 2 * Math.PI) / total - Math.PI / 2;
         return { x: w/2 + dim.radius * Math.cos(angle), y: h/2 + dim.radius * Math.sin(angle) };
     }
-
-    // 👑 2. Պրեզիդիում սեղան (Միայն վերևի շարքում)
     if (category === 'presidium') {
         const spacing = w / (total + 1);
         return { x: spacing * (i + 1), y: -16 };
     }
-
-    // 3. Սովորական ուղղանկյուն սեղաններ (երկու կողմից)
     const half = Math.ceil(total / 2);
     const spacing = w / (half + 1);
     if (i < half) return { x: spacing * (i + 1), y: -16 };
     return { x: spacing * (i - half + 1), y: h + 16 };
 }
-// ✅ FIX 3: mousemove — wrapper-relative so drag is accurate at any zoom level
-// 👑 Կտավի իրադարձությունների կապում (Mousedown և Wheel Zoom)
-document.addEventListener('DOMContentLoaded', () => {
-    const container = document.getElementById('hallContainer');
-    if (container) {
-        // 1. Մկնիկի սեղմումը ֆոնի վրա (Pan Start)
-        container.addEventListener('mousedown', (e) => {
-            if (e.target.closest('.movable-table') || e.target.closest('.chair') || e.target.tagName === 'BUTTON') return;
-            isPanning = true;
-            container.style.cursor = 'grabbing';
-            panStart.x = e.clientX - panOffset.x;
-            panStart.y = e.clientY - panOffset.y;
-        });
 
-        // 2. 💡 Մկնիկի անիվով մեծացնել / փոքրացնել (Wheel Zoom)
-        container.addEventListener('wheel', (e) => {
-            e.preventDefault(); // Կանխում ենք բրաուզերի դեֆոլտ էջի scroll-ը
-
-            // Որոշում ենք Zoom-ի ուղղությունը (անիվը վերև թե ներքև)
-            const zoomFactor = 1.08;
-            if (e.deltaY < 0) {
-                // Անիվը վերև -> Մեծացնել
-                zoomScale = Math.min(2.5, zoomScale * zoomFactor);
-            } else {
-                // Անիվը ներքև -> Փոքրացնել
-                zoomScale = Math.max(0.3, zoomScale / zoomFactor);
-            }
-
-            updateCanvasTransform();
-        }, { passive: false }); // { passive: false } պարտադիր է e.preventDefault()-ի աշխատելու համար
-    }
-});
-
-// 👑 Միասնական MouseMove (և՛ Սեղանների, և՛ Կտավի տեղաշարժի համար)
-// 👑 Միասնական MouseMove (և՛ Սեղանների, և՛ Կտավի տեղաշարժի համար)
 document.addEventListener('mousemove', (e) => {
-    // Տարբերակ 1: Եթե սեղան է շարժվում
     if (activeMovingTable) {
         const wrapRect = document.getElementById('zoomWrapper').getBoundingClientRect();
-
-        // 💡 Հանում ենք Math.max-երը, որպեսզի սեղանը անսահմանափակ շարժվի բոլոր ուղղություններով
         let x = (e.clientX - wrapRect.left) / zoomScale - dragOffset.x;
         let y = (e.clientY - wrapRect.top)  / zoomScale - dragOffset.y;
 
         activeMovingTable.style.left = x + 'px';
         activeMovingTable.style.top  = y + 'px';
-        tablePositions[activeMovingTable.getAttribute('data-table-id')] = { x, y };
+
+        const tableId = activeMovingTable.getAttribute('data-table-id');
+        const currentRotation = tableRotations[tableId] || 0;
+        activeMovingTable.style.transform = `rotate(${currentRotation}deg)`;
+
+        tablePositions[tableId] = { x, y };
         return;
     }
 
-    // Տարբերակ 2: Եթե ամբողջ կտավն է շարժվում (Pan)
     if (isPanning) {
         panOffset.x = e.clientX - panStart.x;
         panOffset.y = e.clientY - panStart.y;
@@ -768,7 +763,6 @@ document.addEventListener('mousemove', (e) => {
     }
 });
 
-// 👑 MouseUp (Ավարտում ենք և՛ Սեղանի, և՛ Կտավի շարժը)
 document.addEventListener('mouseup', () => {
     if (activeMovingTable) {
         activeMovingTable.classList.remove('dragging');
@@ -839,10 +833,8 @@ async function openTableSheet(tableId) {
     summary.innerHTML = `<span>${catLabel[table.category]} — ${table.capacity} տեղ</span><span>${seatedHere.length} / ${table.capacity} զբաղ.</span>`;
     body.appendChild(summary);
 
-seatedHere.forEach((m) => {
-        // 📌 Օգտագործում ենք m.seat_index-ը (եթե զրոյից է սկսվում, ավելացնում ենք 1, որ ստանանք 1-ից սկսվող համար)
+    seatedHere.forEach((m) => {
         const seatNumber = (m.seat_index != null) ? (m.seat_index + 1) : '-';
-
         const row = document.createElement('div');
         row.style.cssText = 'display:flex;align-items:center;margin-bottom:6px;padding:6px 8px;background:rgba(0,0,0,0.02);border-radius:6px;';
         row.innerHTML = `
@@ -919,7 +911,6 @@ function sheetRemove(memberId) {
     };
 }
 
-// ── SINGLE CHAIR PICKER ──
 function openGuestPicker(tableId) {
     pendingSeatTableId = tableId;
     const list = document.getElementById('guestPickerList');
@@ -1001,7 +992,6 @@ async function findNextFreeSeat(tableId) {
     return null;
 }
 
-// ── SEATED CHAIR CLICK ──
 function manageSeatedMember(member) {
     document.getElementById('chairActionsTitle').innerText = member.first_name || 'Անանուն հյուր';
     document.getElementById('chairActionRenameBtn').onclick = () => {
@@ -1021,7 +1011,6 @@ function manageSeatedMember(member) {
     openModal('chairActionsModal');
 }
 
-// ── GUESTS LIST ──
 async function loadGuests() {
     const res = await fetch(`/api/v1/guests/wedding/${weddingId}`);
     if (!res.ok) { document.getElementById('guestsContainer').innerHTML = '<p class="text-center text-[#8c7b66] text-xs italic py-6">Սխալ</p>'; return; }
@@ -1063,7 +1052,7 @@ function renderGuestsList() {
                 row.innerHTML = `
                     <span class="flex-1">${m.first_name || '(Անանուն)'}</span>
                     ${m.table_id ? '<span class="text-[9px] bg-[#7a9e7e]/10 text-[#7a9e7e] px-1.5 py-0.5 rounded-full">✓ Նստ.</span>' : ''}
-                    <button onclick="quickRenameMember(${m.id},'${(m.first_name||'').replace(/'/g,"\\'")}')\" class="text-[#8c7b66] hover:text-[#1a1612] ml-1 transition-colors">✏</button>
+                    <button onclick="quickRenameMember(${m.id},'${(m.first_name||'').replace(/'/g,"\\'")}')" class="text-[#8c7b66] hover:text-[#1a1612] ml-1 transition-colors">✏</button>
                 `;
                 membersDiv.appendChild(row);
             });
@@ -1097,31 +1086,20 @@ function deleteGuest(id) {
 }
 
 function quickRenameMember(id, oldName) {
-    // 1. Գտնում ենք մոդալի ներսի input-ը
     const input = document.getElementById('renameMemberInput');
-    input.value = oldName; // Տեղադրում ենք հին անունը
-
-    // 2. Բացում ենք պատրաստի սիրուն HTML մոդալը
+    input.value = oldName;
     openModal('renameMemberModal');
-    setTimeout(() => input.focus(), 100); // Ֆոկուս ենք անում input-ի վրա
+    setTimeout(() => input.focus(), 100);
 
-    // 3. Կապում ենք թարմացման կոճակի սեղմելը API հարցման հետ
     document.getElementById('updateConfirmBtn').onclick = async () => {
         const newName = input.value.trim();
         if (!newName) return;
-
-        // 🌐 Ուղարկում ենք ֆոնային հարցումը սերվերին (Fetch API)
         const res = await fetch(`/api/v1/guest-members/${id}/name?first_name=${encodeURIComponent(newName)}`, {
             method: 'PUT'
         });
-
         if (res.ok) {
-            closeModal('renameMemberModal'); // Փակում ենք մոդալը
-
-            // 🔄 Թարմացնում ենք տվյալները էջում առանց reload-ի
-            loadGuests();
-            loadTables();
-            loadUnseated();
+            closeModal('renameMemberModal');
+            loadGuests(); loadTables(); loadUnseated();
         }
     };
 }
@@ -1143,7 +1121,6 @@ async function mergeSelectedGuests() {
     if (res.ok) { selectedGuestIds = []; document.getElementById('mergeBar').classList.add('hidden'); loadGuests(); loadUnseated(); loadTables(); }
 }
 
-// ── UNSEATED ──
 async function loadUnseated() {
     const [gR, uR] = await Promise.all([
         fetch(`/api/v1/guests/wedding/${weddingId}`),
@@ -1169,15 +1146,13 @@ function renderUnseatedList() {
         return;
     }
 
-    // 1. Ստեղծում ենք վիրտուալ կոնտեյներ (Document Fragment) 📦
     const fragment = document.createDocumentFragment();
     let hasVisibleGuests = false;
 
     globalAllGuests.forEach(guest => {
         if (typeof currentUnseatedFilter !== 'undefined' && currentUnseatedFilter !== 'all' && guest.side !== currentUnseatedFilter) return;
 
-        hasVisibleGuests = true; // Նշում ենք, որ ֆիլտրին համապատասխանող հյուր կա
-
+        hasVisibleGuests = true;
         const guestUnseated = guest.members.filter(m => unseatedIds.has(m.id));
         const total = guest.members.length;
         const unseatCount = guestUnseated.length;
@@ -1200,7 +1175,6 @@ function renderUnseatedList() {
         `;
 
         const expandDiv = document.createElement('div');
-        // ✅ Պահպանում ենք խմբի բացված լինելու վիճակը
         if (typeof openedGroupIds !== 'undefined' && openedGroupIds.has(guest.id)) {
             expandDiv.className = 'border-t border-[#f7f3ee]';
         } else {
@@ -1238,33 +1212,25 @@ function renderUnseatedList() {
             expandDiv.appendChild(row);
         });
 
-        // ✅ Սեղմելիս հիշում ենք խմբի ID-ն global Set-ի մեջ
         header.addEventListener('click', (e) => {
             if (e.target.tagName === 'BUTTON') return;
             const isHidden = expandDiv.classList.toggle('hidden');
             if (typeof openedGroupIds !== 'undefined') {
-                if (!isHidden) {
-                    openedGroupIds.add(guest.id);
-                } else {
-                    openedGroupIds.delete(guest.id);
-                }
+                if (!isHidden) openedGroupIds.add(guest.id);
+                else openedGroupIds.delete(guest.id);
             }
         });
 
         card.appendChild(header);
         card.appendChild(expandDiv);
-
-        // 2. Քարտը ավելացնում ենք ոչ թե էջի, այլ վիրտուալ fragment-ի մեջ ➕
         fragment.appendChild(card);
     });
 
-    // 3. Մաքրում ենք հին HTML-ը և տեղադրում նորը մեկ ակնթարթում ⚡
     container.innerHTML = '';
-
     if (!hasVisibleGuests) {
         container.innerHTML = '<p class="text-center text-[#8c7b66] text-xs italic py-6">Այս կողմից չնստեցված հյուրեր չկան 🍃</p>';
     } else {
-        container.appendChild(fragment); // 📌 Բոլոր քարտերը հայտնվում են միաժամանակ
+        container.appendChild(fragment);
     }
 }
 
@@ -1273,7 +1239,6 @@ async function unseatMember(memberId) {
     loadTables(); loadUnseated();
 }
 
-// ── SEAT COUNT MODAL ──
 function openSeatCountModal(guestId) {
     const guest = globalAllGuests.find(g => g.id === guestId);
     if (!guest) return;
@@ -1362,7 +1327,6 @@ async function seatGroupOnTable(guestInfo, count, tableId) {
     loadTables(); loadUnseated(); loadGuests();
 }
 
-// ── FILTERS ──
 let currentMainFilter = 'all';
 let currentUnseatedFilter = 'all';
 const openedGroupIds = new Set();
@@ -1391,7 +1355,6 @@ function filterUnseatedMembers(side) {
     renderUnseatedList();
 }
 
-// ── MODAL HELPERS ──
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
@@ -1407,25 +1370,23 @@ document.addEventListener('keydown', (e) => {
          'editCapacityModal','confirmDeleteModal','renameMemberModal','chairActionsModal'].forEach(closeModal);
     }
 });
-    async function exportToPDF() {
-    // 1. Վերցնում ենք թարմ տվյալները
+
+async function exportToPDF() {
     const [tablesRes, guestsRes] = await Promise.all([
         fetch(`/api/v1/tables/wedding/${weddingId}`),
         fetch(`/api/v1/guests/wedding/${weddingId}`)
     ]);
 
     if (!tablesRes.ok || !guestsRes.ok) {
-        alert("Չհաջողվեց ներբեռնել տվյալները PDF-ի համար:");
+        alert("Չհաջողվեց ներբեռնել տվյալները PDF-ի համար։");
         return;
     }
 
     const tables = await tablesRes.json();
     const guests = await guestsRes.json();
 
-    // Սորտավորում ենք սեղանները ըստ համարների
     tables.sort((a, b) => parseInt(a.table_number) - parseInt(b.table_number));
 
-    // Հավաքում ենք բոլոր անդամներին մեկ տեղում
     const allMembers = [];
     guests.forEach(g => {
         if (g.members) {
@@ -1435,23 +1396,17 @@ document.addEventListener('keydown', (e) => {
         }
     });
 
-    // 2. Ստեղծում ենք PDF դոկումենտը
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
 
-    // 💡 Քանի որ jsPDF-ը դեֆոլտ չի հասկանում հայերեն տառերը (դառնում են խազեր),
-    // օգտագործում ենք ստանդարտ Unicode Helvetica, բայց AutoTable-ին կասենք, որ utf-8 տեքստ է
     doc.setFont("Helvetica", "bold");
     doc.setFontSize(18);
-    doc.text("HURERI NSTECMAN CUC AK", 14, 15); // Վերնագիր (անգլատառ կամ հայատառ՝ ըստ ֆոնտի)
+    doc.text("HURERI NSTECMAN CUC AK", 14, 15);
 
-    // 3. Պատրաստում ենք աղյուսակի տվյալները
     const tableRows = [];
 
     tables.forEach(table => {
-        // Գտնում ենք այս սեղանին նստած հյուրերին
         const seatedHere = allMembers.filter(m => m.table_id === table.id);
-        // Սորտավորում ենք ըստ աթոռի համարի (seat_index)
         seatedHere.sort((a, b) => (a.seat_index || 0) - (b.seat_index || 0));
 
         if (seatedHere.length === 0) {
@@ -1459,7 +1414,6 @@ document.addEventListener('keydown', (e) => {
         } else {
             seatedHere.forEach((m, idx) => {
                 const chairNum = m.seat_index !== null ? m.seat_index + 1 : idx + 1;
-                // Առաջին տողում գրում ենք սեղանի համարը, հաջորդների տակ դատարկ ենք թողնում, որ սիրուն լինի
                 const seghanCell = idx === 0 ? `Seghan ${table.table_number}` : "";
                 tableRows.push([
                     seghanCell,
@@ -1468,11 +1422,9 @@ document.addEventListener('keydown', (e) => {
                 ]);
             });
         }
-        // Ավելացնում ենք դատարկ տող սեղանների արանքում՝ տեսողական առանձնացնելու համար
         tableRows.push(["", "", ""]);
     });
 
-    // 4. Նկարում ենք աղյուսակը AutoTable-ով
     doc.autoTable({
         startY: 22,
         head: [['Seghan', 'Ator', 'Anun Azganun']],
@@ -1485,7 +1437,6 @@ document.addEventListener('keydown', (e) => {
             1: { cellWidth: 30 },
             2: { fontStyle: 'normal' }
         },
-        // Սա թույլ չի տալիս, որ դատարկ բաժանարար տողերը տգեղ գծեր ունենան
         didParseCell: function (data) {
             if (data.row.raw[0] === "" && data.row.raw[1] === "" && data.row.raw[2] === "") {
                 data.cell.styles.fillColor = [255, 255, 255];
@@ -1494,7 +1445,6 @@ document.addEventListener('keydown', (e) => {
         }
     });
 
-    // 5. Ներբեռնում ենք ֆայլը
     doc.save(`wedding_seating_id_${weddingId}.pdf`);
 }
 </script>
