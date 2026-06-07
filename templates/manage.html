@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Հարսանեկան Սրահ</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -137,6 +139,9 @@
                     <span class="text-xs">👑</span> Պրեզիդիում
                 </button>
             </div>
+            <button onclick="exportToPDF()" class="flex items-center gap-2 bg-[#7a9e7e] hover:bg-[#688a6c] text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-sm transition-all cursor-pointer">
+    🖨️ Տպել Ցուցակը (PDF)
+</button>
         </div>
 
         <!-- Zoom Controls -->
@@ -1402,6 +1407,96 @@ document.addEventListener('keydown', (e) => {
          'editCapacityModal','confirmDeleteModal','renameMemberModal','chairActionsModal'].forEach(closeModal);
     }
 });
+    async function exportToPDF() {
+    // 1. Վերցնում ենք թարմ տվյալները
+    const [tablesRes, guestsRes] = await Promise.all([
+        fetch(`/api/v1/tables/wedding/${weddingId}`),
+        fetch(`/api/v1/guests/wedding/${weddingId}`)
+    ]);
+
+    if (!tablesRes.ok || !guestsRes.ok) {
+        alert("Չհաջողվեց ներբեռնել տվյալները PDF-ի համար:");
+        return;
+    }
+
+    const tables = await tablesRes.json();
+    const guests = await guestsRes.json();
+
+    // Սորտավորում ենք սեղանները ըստ համարների
+    tables.sort((a, b) => parseInt(a.table_number) - parseInt(b.table_number));
+
+    // Հավաքում ենք բոլոր անդամներին մեկ տեղում
+    const allMembers = [];
+    guests.forEach(g => {
+        if (g.members) {
+            g.members.forEach(m => {
+                allMembers.push({ ...m, guest_display_name: g.display_name });
+            });
+        }
+    });
+
+    // 2. Ստեղծում ենք PDF դոկումենտը
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+
+    // 💡 Քանի որ jsPDF-ը դեֆոլտ չի հասկանում հայերեն տառերը (դառնում են խազեր),
+    // օգտագործում ենք ստանդարտ Unicode Helvetica, բայց AutoTable-ին կասենք, որ utf-8 տեքստ է
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text("HURERI NSTECMAN CUC AK", 14, 15); // Վերնագիր (անգլատառ կամ հայատառ՝ ըստ ֆոնտի)
+
+    // 3. Պատրաստում ենք աղյուսակի տվյալները
+    const tableRows = [];
+
+    tables.forEach(table => {
+        // Գտնում ենք այս սեղանին նստած հյուրերին
+        const seatedHere = allMembers.filter(m => m.table_id === table.id);
+        // Սորտավորում ենք ըստ աթոռի համարի (seat_index)
+        seatedHere.sort((a, b) => (a.seat_index || 0) - (b.seat_index || 0));
+
+        if (seatedHere.length === 0) {
+            tableRows.push([`Sg. ${table.table_number}`, "Datark seghan", ""]);
+        } else {
+            seatedHere.forEach((m, idx) => {
+                const chairNum = m.seat_index !== null ? m.seat_index + 1 : idx + 1;
+                // Առաջին տողում գրում ենք սեղանի համարը, հաջորդների տակ դատարկ ենք թողնում, որ սիրուն լինի
+                const seghanCell = idx === 0 ? `Seghan ${table.table_number}` : "";
+                tableRows.push([
+                    seghanCell,
+                    `Ator ${chairNum}`,
+                    m.first_name || "Ananun Hyur"
+                ]);
+            });
+        }
+        // Ավելացնում ենք դատարկ տող սեղանների արանքում՝ տեսողական առանձնացնելու համար
+        tableRows.push(["", "", ""]);
+    });
+
+    // 4. Նկարում ենք աղյուսակը AutoTable-ով
+    doc.autoTable({
+        startY: 22,
+        head: [['Seghan', 'Ator', 'Anun Azganun']],
+        body: tableRows,
+        theme: 'striped',
+        headStyles: { fillColor: [26, 22, 18], textColor: [232, 213, 176], fontStyle: 'bold' },
+        styles: { font: 'Helvetica', fontSize: 10, cellPadding: 3 },
+        columnStyles: {
+            0: { fontStyle: 'bold', cellWidth: 40 },
+            1: { cellWidth: 30 },
+            2: { fontStyle: 'normal' }
+        },
+        // Սա թույլ չի տալիս, որ դատարկ բաժանարար տողերը տգեղ գծեր ունենան
+        didParseCell: function (data) {
+            if (data.row.raw[0] === "" && data.row.raw[1] === "" && data.row.raw[2] === "") {
+                data.cell.styles.fillColor = [255, 255, 255];
+                data.cell.styles.lineColor = [255, 255, 255];
+            }
+        }
+    });
+
+    // 5. Ներբեռնում ենք ֆայլը
+    doc.save(`wedding_seating_id_${weddingId}.pdf`);
+}
 </script>
 </body>
 </html>
