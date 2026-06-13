@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Հարսանեկան Սրահ 💍</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'DM Sans', sans-serif; overscroll-behavior: none; }
+        .font-cormorant { font-family: 'Cormorant Garamond', serif; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 2px; }
+        ::-webkit-scrollbar-thumb { background: #d4b896; border-radius: 10px; }
+
+        /* Tab panels */
+        .tab-panel { display: none; }
+        .tab-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+        /* Bottom nav */
+        .bottom-nav-btn { transition: all 0.18s; }
+        .bottom-nav-btn.active .nav-icon { transform: translateY(-2px); }
+        .bottom-nav-btn.active .nav-label { color: #c9a96e; font-weight: 600; }
+        .bottom-nav-btn.active .nav-icon-wrap { background: #c9a96e15; }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(26,22,18,0.6);
+            backdrop-filter: blur(6px);
+            display: none; align-items: flex-end; justify-content: center;
+            z-index: 300;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-sheet {
+            background: #fdfaf6;
+            border-radius: 20px 20px 0 0;
+            width: 100%; max-height: 92vh;
+            overflow-y: auto;
+            padding-bottom: env(safe-area-inset-bottom, 16px);
+            animation: slideUp 0.22s ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(40px); opacity: 0.6; }
+            to   { transform: translateY(0);    opacity: 1; }
+        }
+        .modal-handle {
+            width: 36px; height: 4px;
+            background: #d4c4b0; border-radius: 2px;
+            margin: 10px auto 0;
+        }
+
+        /* Table map mini */
+        .table-card-map {
+            background: #e8e0d4;
+            border: 2px solid #cfc4b4;
+        }
+        .table-card-map.round { border-radius: 50%; }
+        .table-card-map.presidium { border-radius: 6px; background: #ddd5c4; border-color: #c4b89e; }
+        .table-card-map.rectangle, .table-card-map.double_rectangle { border-radius: 8px; }
+
+        /* Touch-friendly inputs */
+        input, select, button { font-size: 16px; } /* prevents iOS zoom */
+
+        /* Progress bar */
+        .progress-bar { height: 3px; background: #f0eae2; border-radius: 2px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+
+        /* Guest card expand */
+        .guest-members-panel { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
+        .guest-members-panel.open { max-height: 400px; }
+
+        /* Focus */
+        input:focus, select:focus, button:focus { outline: none; }
+
+        /* Safe area bottom padding for fixed nav */
+        .bottom-nav {
+            padding-bottom: env(safe-area-inset-bottom, 8px);
+        }
+    </style>
+</head>
+<body class="bg-[#f7f3ee] text-[#1a1612] h-screen flex flex-col overflow-hidden">
+
+<!-- HEADER -->
+<header class="bg-[#1a1612] flex items-center justify-between px-4 flex-shrink-0 z-50" style="height:52px;">
+    <a href="/" class="text-[#e8d5b0] opacity-60 text-xl leading-none">←</a>
+    <h1 id="headerTitle" class="font-cormorant text-[#e8d5b0] text-lg font-semibold tracking-wide truncate mx-3 flex-1 text-center">Բեռնվում է...</h1>
+    <button onclick="exportToPDF()" class="text-[#c9a96e] text-xs font-semibold flex-shrink-0">PDF</button>
+</header>
+
+<!-- MAIN CONTENT AREA -->
+<div class="flex-1 flex flex-col overflow-hidden">
+
+    <!-- ══════════════════════════════════════════════════════
+         TAB 1: ՀՅՈՒՐԵՐ
+    ══════════════════════════════════════════════════════ -->
+    <div id="tab-guests" class="tab-panel active">
+
+        <!-- Summary bar -->
+        <div class="bg-[#fefcf9] border-b border-[#e8ddd0] px-4 py-2 flex items-center gap-3 flex-shrink-0">
+            <div id="guestSummary" class="text-[11px] text-[#8c7b66] flex-1">Բեռնվում...</div>
+            <button onclick="openAddGuestSheet()"
+                class="bg-[#1a1612] text-[#e8d5b0] text-xs font-semibold px-3 py-1.5 rounded-lg">
+                ＋ Հյուր
+            </button>
+        </div>
+
+        <!-- Filter pills -->
+        <div class="flex gap-2 px-3 py-2 bg-[#fefcf9] border-b border-[#e8ddd0] flex-shrink-0">
+            <button onclick="setGuestFilter('all')"   id="gf-all"   class="gf-pill active flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#1a1612] text-[#e8d5b0]">Բոլոր</button>
+            <button onclick="setGuestFilter('bride')" id="gf-bride" class="gf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]">👰 Հարս</button>
+            <button onclick="setGuestFilter('groom')" id="gf-groom" class="gf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]">🤵 Փես</button>
+        </div>
+
+        <!-- Merge bar -->
+        <div id="mergeBar" class="hidden px-3 py-2 bg-[#c4736a]/10 border-b border-[#c4736a]/20 flex-shrink-0">
+            <button onclick="mergeSelected()"
+                class="w-full py-2 bg-[#c4736a] text-white rounded-lg text-sm font-semibold">
+                🧩 Միավորել ընտրվածները
+            </button>
+        </div>
+
+        <!-- Guest list -->
+        <div id="guestList" class="flex-1 overflow-y-auto px-3 py-2 space-y-2">
+            <p class="text-center text-[#8c7b66] text-sm italic py-8">Բեռնվում է...</p>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         TAB 2: ՍՐԱՀ (table list view, no canvas on mobile)
+    ══════════════════════════════════════════════════════ -->
+    <div id="tab-hall" class="tab-panel">
+
+        <!-- Top bar -->
+        <div class="bg-[#fefcf9] border-b border-[#e8ddd0] px-4 py-2 flex items-center gap-2 flex-shrink-0">
+            <div id="hallSummary" class="text-[11px] text-[#8c7b66] flex-1"></div>
+            <button onclick="openAddTableSheet()"
+                class="bg-[#1a1612] text-[#e8d5b0] text-xs font-semibold px-3 py-1.5 rounded-lg">
+                ＋ Սեղան
+            </button>
+        </div>
+
+        <!-- Table cards -->
+        <div id="tableList" class="flex-1 overflow-y-auto px-3 py-2 space-y-3">
+            <p class="text-center text-[#8c7b66] text-sm italic py-8">Բեռնվում է...</p>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         TAB 3: ՉՆՍՏԵՑՎԱԾՆԵՐ
+    ══════════════════════════════════════════════════════ -->
+    <div id="tab-unseated" class="tab-panel">
+
+        <!-- Summary -->
+        <div class="bg-[#fefcf9] border-b border-[#e8ddd0] px-4 py-2 flex-shrink-0">
+            <div id="unseatedSummary" class="text-[11px] text-[#8c7b66]">Բեռնվում...</div>
+        </div>
+
+        <!-- Filter pills -->
+        <div class="flex gap-2 px-3 py-2 bg-[#fefcf9] border-b border-[#e8ddd0] flex-shrink-0">
+            <button onclick="setUnseatedFilter('all')"   id="uf-all"   class="uf-pill active flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#1a1612] text-[#e8d5b0]">Բոլոր</button>
+            <button onclick="setUnseatedFilter('bride')" id="uf-bride" class="uf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]">👰 Հարս</button>
+            <button onclick="setUnseatedFilter('groom')" id="uf-groom" class="uf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]">🤵 Փես</button>
+        </div>
+
+        <!-- Unseated list -->
+        <div id="unseatedList" class="flex-1 overflow-y-auto px-3 py-2 space-y-2">
+            <p class="text-center text-[#8c7b66] text-sm italic py-8">Բեռնվում է...</p>
+        </div>
+    </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav bg-[#1a1612] flex flex-shrink-0 border-t border-[#2d2520]">
+    <button onclick="switchTab('guests')" id="nav-guests" class="bottom-nav-btn active flex-1 flex flex-col items-center pt-2 pb-1">
+        <div class="nav-icon-wrap w-10 h-8 rounded-xl flex items-center justify-center mb-0.5">
+            <span class="nav-icon text-xl">👥</span>
+        </div>
+        <span class="nav-label text-[10px] text-[#c9a96e] font-semibold">Հյուրեր</span>
+    </button>
+    <button onclick="switchTab('hall')" id="nav-hall" class="bottom-nav-btn flex-1 flex flex-col items-center pt-2 pb-1">
+        <div class="nav-icon-wrap w-10 h-8 rounded-xl flex items-center justify-center mb-0.5">
+            <span class="nav-icon text-xl">🪑</span>
+        </div>
+        <span class="nav-label text-[10px] text-[#8c7b66]">Սրահ</span>
+    </button>
+    <button onclick="switchTab('unseated')" id="nav-unseated" class="bottom-nav-btn flex-1 flex flex-col items-center pt-2 pb-1">
+        <div class="nav-icon-wrap w-10 h-8 rounded-xl flex items-center justify-center mb-0.5">
+            <span class="nav-icon text-xl">⏳</span>
+        </div>
+        <span class="nav-label text-[10px] text-[#8c7b66]">Չնստ.</span>
+    </button>
+</nav>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODALS (Bottom Sheets)
+═══════════════════════════════════════════════════════════ -->
+
+<!-- Add Guest Sheet -->
+<div class="modal-overlay" id="addGuestModal" onclick="closeModal('addGuestModal')">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+        <div class="modal-handle"></div>
+        <div class="px-5 pt-4 pb-2 border-b border-[#e8ddd0]">
+            <div class="font-cormorant text-xl font-bold text-[#1a1612]">Ավելացնել հյուր</div>
+        </div>
+        <div class="p-5 space-y-4">
+            <div>
+                <label class="block text-[11px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-1.5">Անուն / Ազգ.</label>
+                <input id="m_guestName" type="text" placeholder="Օր.՝ Մարգարյան ընտանիք"
+                    class="w-full px-4 py-3 rounded-xl border border-[#e8ddd0] bg-white text-sm text-[#1a1612] placeholder-[#c8bfb2]"
+                    style="font-size:16px;">
+            </div>
+            <div class="flex gap-3">
+                <div class="flex-1">
+                    <label class="block text-[11px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-1.5">Հոգ.</label>
+                    <div class="flex items-center gap-2 bg-[#f7f3ee] rounded-xl border border-[#e8ddd0] px-3 py-2.5">
+                        <button onclick="changeM('m_guestCount',-1)" class="w-8 h-8 rounded-full border border-[#e8ddd0] bg-white flex items-center justify-center text-lg font-medium">−</button>
+                        <span id="m_guestCountDisplay" class="font-cormorant text-2xl font-bold flex-1 text-center">1</span>
+                        <button onclick="changeM('m_guestCount',1)"  class="w-8 h-8 rounded-full border border-[#e8ddd0] bg-white flex items-center justify-center text-lg font-medium">+</button>
+                    </div>
+                    <input type="hidden" id="m_guestCount" value="1">
+                </div>
+                <div class="flex-1">
+                    <label class="block text-[11px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-1.5">Կողմ</label>
+                    <select id="m_guestSide" class="w-full px-3 py-3 rounded-xl border border-[#e8ddd0] bg-white text-sm text-[#1a1612]" style="font-size:16px;">
+                        <option value="bride">👰 Հարս</option>
+                        <option value="groom">🤵 Փեսա</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="submitAddGuest()"
+                class="w-full py-3.5 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold">
+                ＋ Ավելացնել
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Table Sheet -->
+<div class="modal-overlay" id="addTableModal" onclick="closeModal('addTableModal')">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+        <div class="modal-handle"></div>
+        <div class="px-5 pt-4 pb-2 border-b border-[#e8ddd0]">
+            <div class="font-cormorant text-xl font-bold text-[#1a1612]">Ավելացնել սեղան</div>
+        </div>
+        <div class="p-5 space-y-4">
+            <!-- Category picker -->
+            <div>
+                <label class="block text-[11px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-2">Տեսակ</label>
+                <div class="grid grid-cols-2 gap-2" id="catPicker">
+                    <button onclick="selectCat('round')"            class="cat-btn rounded-xl border-2 border-[#e8ddd0] p-3 text-sm font-medium text-[#5c4f3d] flex items-center gap-2">⭕ Կլոր</button>
+                    <button onclick="selectCat('rectangle')"        class="cat-btn rounded-xl border-2 border-[#e8ddd0] p-3 text-sm font-medium text-[#5c4f3d] flex items-center gap-2">▬ Ուղղ.</button>
+                    <button onclick="selectCat('double_rectangle')" class="cat-btn rounded-xl border-2 border-[#e8ddd0] p-3 text-sm font-medium text-[#5c4f3d] flex items-center gap-2">▬▬ Կրկ.</button>
+                    <button onclick="selectCat('presidium')"        class="cat-btn rounded-xl border-2 border-[#e8ddd0] p-3 text-sm font-semibold text-[#8a6c30] flex items-center gap-2">👑 Պրեզ.</button>
+                </div>
+            </div>
+            <div>
+                <label class="block text-[11px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-1.5">Համար / Անուն</label>
+                <input id="m_tableNumber" type="text" placeholder="Օր.՝ 1, A, VIP..."
+                    class="w-full px-4 py-3 rounded-xl border border-[#e8ddd0] bg-white text-sm text-[#1a1612]"
+                    style="font-size:16px;">
+            </div>
+            <div>
+                <label class="block text-[11px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-1.5">Աթոռ</label>
+                <div class="flex items-center gap-3 bg-[#f7f3ee] rounded-xl border border-[#e8ddd0] px-4 py-3">
+                    <button onclick="changeM('m_tableCapacity',-1)" class="w-10 h-10 rounded-full border border-[#e8ddd0] bg-white flex items-center justify-center text-xl font-medium">−</button>
+                    <span id="m_tableCapacityDisplay" class="font-cormorant text-4xl font-bold flex-1 text-center text-[#1a1612]">10</span>
+                    <button onclick="changeM('m_tableCapacity',1)"  class="w-10 h-10 rounded-full border border-[#e8ddd0] bg-white flex items-center justify-center text-xl font-medium">+</button>
+                </div>
+                <input type="hidden" id="m_tableCapacity" value="10">
+            </div>
+            <button onclick="submitAddTable()"
+                class="w-full py-3.5 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold">
+                Ստեղծել ✓
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Table Detail Sheet -->
+<div class="modal-overlay" id="tableDetailModal" onclick="closeModal('tableDetailModal')">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+        <div class="modal-handle"></div>
+        <div class="px-5 pt-4 pb-3 border-b border-[#e8ddd0] flex items-center justify-between">
+            <div id="tableDetailTitle" class="font-cormorant text-xl font-bold text-[#1a1612]"></div>
+            <div id="tableDetailMeta" class="text-[11px] text-[#8c7b66]"></div>
+        </div>
+        <div id="tableDetailBody" class="p-4 space-y-2 pb-6"></div>
+    </div>
+</div>
+
+<!-- Seat picker: choose table for a guest group -->
+<div class="modal-overlay" id="tablePickerModal" onclick="closeModal('tablePickerModal')">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+        <div class="modal-handle"></div>
+        <div class="px-5 pt-4 pb-3 border-b border-[#e8ddd0]">
+            <div id="tablePickerTitle" class="font-cormorant text-xl font-bold text-[#1a1612]">Ընտրել սեղան</div>
+        </div>
+        <div id="tablePickerList" class="p-4 space-y-2 pb-8 overflow-y-auto" style="max-height:60vh;"></div>
+    </div>
+</div>
+
+<!-- Guest picker for a single seat -->
+<div class="modal-overlay" id="guestPickerModal" onclick="closeModal('guestPickerModal')">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+        <div class="modal-handle"></div>
+        <div class="px-5 pt-4 pb-3 border-b border-[#e8ddd0]">
+            <div class="font-cormorant text-xl font-bold text-[#1a1612]">Ընտրել հյուր</div>
+        </div>
+        <div id="guestPickerList" class="p-4 space-y-2 pb-8 overflow-y-auto" style="max-height:60vh;"></div>
+    </div>
+</div>
+
+<!-- Rename member -->
+<div class="modal-overlay" id="renameMemberModal" onclick="closeModal('renameMemberModal')">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+        <div class="modal-handle"></div>
+        <div class="px-5 pt-4 pb-3 border-b border-[#e8ddd0]">
+            <div class="font-cormorant text-xl font-bold text-[#1a1612]">Փոխել անուն</div>
+        </div>
+        <div class="p-5 space-y-4">
+            <input id="renameInput" type="text"
+                class="w-full px-4 py-3 rounded-xl border border-[#e8ddd0] bg-white text-sm text-[#1a1612]"
+                style="font-size:16px;">
+            <button id="renameConfirmBtn"
+                class="w-full py-3.5 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold">
+                Պահպանել ✓
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit capacity -->
+<div class="modal-overlay" id="editCapacityModal" onclick="closeModal('editCapacityModal')">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+        <div class="modal-handle"></div>
+        <div class="px-5 pt-4 pb-3 border-b border-[#e8ddd0]">
+            <div class="font-cormorant text-xl font-bold text-[#1a1612]">Փոխել աթոռների քանակ</div>
+        </div>
+        <div class="p-5 space-y-4">
+            <div class="flex items-center gap-4 bg-[#f7f3ee] rounded-xl border border-[#e8ddd0] px-5 py-4">
+                <button onclick="changeM('m_editCapacity',-1)" class="w-12 h-12 rounded-full border border-[#e8ddd0] bg-white flex items-center justify-center text-2xl">−</button>
+                <span id="m_editCapacityDisplay" class="font-cormorant text-5xl font-bold flex-1 text-center text-[#1a1612]">12</span>
+                <button onclick="changeM('m_editCapacity',1)"  class="w-12 h-12 rounded-full border border-[#e8ddd0] bg-white flex items-center justify-center text-2xl">+</button>
+            </div>
+            <input type="hidden" id="m_editCapacity" value="12">
+            <button id="editCapacityConfirmBtn"
+                class="w-full py-3.5 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold">
+                Պահպանել ✓
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm delete -->
+<div class="modal-overlay" id="confirmDeleteModal" onclick="closeModal('confirmDeleteModal')">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+        <div class="modal-handle"></div>
+        <div class="p-6 text-center">
+            <div class="text-4xl mb-3">🗑️</div>
+            <div class="font-cormorant text-xl font-bold text-[#1a1612] mb-2">Հաստատե՞լ ջնջումը</div>
+            <p id="deleteConfirmText" class="text-sm text-[#8c7b66] mb-6">Այս գործողությունը անդառնալի է։</p>
+            <div class="flex gap-3">
+                <button onclick="closeModal('confirmDeleteModal')"
+                    class="flex-1 py-3 rounded-xl border border-[#e8ddd0] text-sm font-semibold text-[#5c4f3d] bg-white">
+                    Չեղ.
+                </button>
+                <button id="deleteConfirmBtn"
+                    class="flex-1 py-3 rounded-xl bg-[#c4736a] text-white text-sm font-semibold">
+                    Ջնջել
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Seat count picker -->
+<div class="modal-overlay" id="seatCountModal" onclick="closeModal('seatCountModal')">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+        <div class="modal-handle"></div>
+        <div class="px-5 pt-4 pb-3 border-b border-[#e8ddd0]">
+            <div id="seatCountTitle" class="font-cormorant text-xl font-bold text-[#1a1612]"></div>
+            <div id="seatCountHint" class="text-[11px] text-[#8c7b66] mt-0.5"></div>
+        </div>
+        <div class="p-5 space-y-4">
+            <div class="flex items-center gap-4 bg-[#f7f3ee] rounded-xl border border-[#e8ddd0] px-5 py-4">
+                <button onclick="changeM('m_seatCount',-1)" class="w-12 h-12 rounded-full border border-[#e8ddd0] bg-white flex items-center justify-center text-2xl">−</button>
+                <span id="m_seatCountDisplay" class="font-cormorant text-5xl font-bold flex-1 text-center text-[#1a1612]">1</span>
+                <button onclick="changeM('m_seatCount',1)"  class="w-12 h-12 rounded-full border border-[#e8ddd0] bg-white flex items-center justify-center text-2xl">+</button>
+            </div>
+            <input type="hidden" id="m_seatCount" value="1">
+            <div id="seatCountMaxLabel" class="text-[11px] text-[#8c7b66] text-center"></div>
+            <button onclick="confirmSeatCount()"
+                class="w-full py-3.5 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold">
+                Ընտրել սեղան ➔
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════════════════════════ -->
+<script>
+// ── Injected by Jinja2 ──
+const weddingId    = {{ wedding_id }};
+const weddingToken = "{{ wedding_token }}";
+
+// ── Inline minimal WA (no external file needed — self-contained) ──────────────
+const WA = {
+    weddingId, weddingToken,
+    allGuests: [], unseatedMembers: [],
+    catLabel: { round:'Կլոր', rectangle:'Ուղղ.', double_rectangle:'Կրկ. Ուղղ.', presidium:'Պրեզիդիում' },
+    defaultCapacity: { round:12, rectangle:8, double_rectangle:16, presidium:6 },
+
+    async fetch(url, opts={}) {
+        opts.headers = { ...(opts.headers||{}), "X-Wedding-Token": weddingToken };
+        return fetch(url, opts);
+    },
+    api: {}
+};
+WA.api = {
+    getWedding:   async () => { const r=await WA.fetch(`/api/v1/weddings/${weddingId}`); return r.ok?r.json():null; },
+    getGuests:    async () => { const r=await WA.fetch(`/api/v1/guests/wedding/${weddingId}`); return r.ok?r.json():[]; },
+    getTables:    async () => { const r=await WA.fetch(`/api/v1/tables/wedding/${weddingId}`); return r.ok?r.json():[]; },
+    getUnseated:  async () => { const r=await WA.fetch(`/api/v1/guest-members/wedding/${weddingId}/unseated`); return r.ok?r.json():[]; },
+    getAllMembers: async () => { const r=await WA.fetch(`/api/v1/guest-members/wedding/${weddingId}`); return r.ok?r.json():[]; },
+    addGuest: async (n,c,s) => (await WA.fetch(`/api/v1/guests/?wedding_id=${weddingId}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({wedding_id:weddingId,display_name:n,total_count:c,side:s,status:'confirmed'})})).ok,
+    deleteGuest: async id => (await WA.fetch(`/api/v1/guests/${id}?wedding_id=${weddingId}`,{method:'DELETE'})).ok,
+    mergeGuests: async (ids,name) => (await WA.fetch(`/api/v1/guests/wedding/${weddingId}/merge`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({guest_ids:ids,new_display_name:name})})).ok,
+    addTable: async (num,cat,cap) => (await WA.fetch(`/api/v1/tables/?wedding_id=${weddingId}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({wedding_id:weddingId,table_number:num,category:cat,capacity:cap})})).ok,
+    deleteTable: async id => (await WA.fetch(`/api/v1/tables/${id}?wedding_id=${weddingId}`,{method:'DELETE'})).ok,
+    updateCapacity: async (id,cap) => { const r=await WA.fetch(`/api/v1/tables/${id}/capacity?wedding_id=${weddingId}&capacity=${cap}`,{method:'PUT'}); if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.detail||'Սխալ');} return r.json(); },
+    seatMember: async (mid,tid,sidx) => { let u=`/api/v1/guest-members/${mid}/seat?wedding_id=${weddingId}`; if(tid!=null)u+=`&table_id=${tid}`; if(sidx!=null)u+=`&seat_index=${sidx}`; const r=await WA.fetch(u,{method:'PUT'}); if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.detail||'Ազատ տեղ չկա');} return r.json(); },
+    unseatMember: async mid => WA.api.seatMember(mid,null,null),
+    renameMember: async (mid,name) => (await WA.fetch(`/api/v1/guest-members/${mid}/name?wedding_id=${weddingId}&first_name=${encodeURIComponent(name)}`,{method:'PUT'})).ok,
+};
+WA.findNextFreeSeat = async function(tableId) {
+    const [tables,members] = await Promise.all([WA.api.getTables(),WA.api.getAllMembers()]);
+    const table = tables.find(t=>t.id===tableId);
+    if(!table) return null;
+    const occ = new Set(members.filter(m=>m.table_id===tableId&&m.seat_index!=null).map(m=>m.seat_index));
+    for(let i=0;i<table.capacity;i++) if(!occ.has(i)) return i;
+    return null;
+};
+WA.seatOnTable = async function(memberId,tableId) {
+    const idx = await WA.findNextFreeSeat(tableId);
+    if(idx===null) throw new Error('Ազատ տեղ չկա');
+    return WA.api.seatMember(memberId,tableId,idx);
+};
+
+// ── State ────────────────────────────────────────────────────────────────────
+let currentTab       = 'guests';
+let guestFilter      = 'all';
+let unseatedFilter   = 'all';
+let selectedGuests   = [];
+let pendingSeatGuest = null;
+let pendingSeatCount = 1;
+let selectedCat      = null;
+const openedGroups   = new Set();
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+    const w = await WA.api.getWedding();
+    if (w) {
+        document.getElementById('headerTitle').innerText = w.title;
+        document.title = w.title;
+    }
+    await reloadAll();
+});
+
+async function reloadAll() {
+    const [guests, unseated] = await Promise.all([WA.api.getGuests(), WA.api.getUnseated()]);
+    WA.allGuests = guests;
+    WA.unseatedMembers = unseated;
+    renderGuests();
+    renderUnseated();
+    await reloadTables();
+}
+async function reloadTables() {
+    const [tables, guests] = await Promise.all([WA.api.getTables(), WA.api.getGuests()]);
+    WA.allGuests = guests;
+    const allMembers = guests.flatMap(g => g.members);
+    renderTables(tables, allMembers);
+    // Update hall summary
+    const total = tables.length;
+    const totalSeats = tables.reduce((s,t)=>s+t.capacity,0);
+    const seated = allMembers.filter(m=>m.table_id!=null).length;
+    document.getElementById('hallSummary').innerText = `${total} սեղ. · ${seated}/${totalSeats} նստ.`;
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById(`tab-${tab}`).classList.add('active');
+
+    document.querySelectorAll('.bottom-nav-btn').forEach(b=>{
+        b.classList.remove('active');
+        b.querySelector('.nav-label').style.color = '#8c7b66';
+        b.querySelector('.nav-icon-wrap').style.background = 'transparent';
+    });
+    const navBtn = document.getElementById(`nav-${tab}`);
+    navBtn.classList.add('active');
+    navBtn.querySelector('.nav-label').style.color = '#c9a96e';
+    navBtn.querySelector('.nav-icon-wrap').style.background = 'rgba(201,169,110,0.12)';
+}
+
+// ── Modal helpers ─────────────────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Counter helper (shared for all +/− controls)
+function changeM(fieldId, delta) {
+    const input = document.getElementById(fieldId);
+    const display = document.getElementById(fieldId + 'Display');
+    let val = parseInt(input.value) + delta;
+    // clamp
+    if (fieldId === 'm_guestCount')    val = Math.max(1, Math.min(100, val));
+    if (fieldId === 'm_tableCapacity') val = Math.max(1, Math.min(60, val));
+    if (fieldId === 'm_editCapacity')  val = Math.max(1, Math.min(60, val));
+    if (fieldId === 'm_seatCount')     val = Math.max(1, Math.min(parseInt(input.max)||100, val));
+    input.value = val;
+    if (display) display.innerText = val;
+}
+
+// ── GUESTS tab ────────────────────────────────────────────────────────────────
+function setGuestFilter(f) {
+    guestFilter = f;
+    document.querySelectorAll('.gf-pill').forEach(b => {
+        b.className = 'gf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]';
+    });
+    const active = document.getElementById(`gf-${f}`);
+    active.className = 'gf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#1a1612] text-[#e8d5b0]';
+    renderGuests();
+}
+
+function renderGuests() {
+    const container = document.getElementById('guestList');
+    const total = WA.allGuests.reduce((s,g)=>s+g.total_count,0);
+    const seated = WA.allGuests.flatMap(g=>g.members).filter(m=>m.table_id).length;
+    document.getElementById('guestSummary').innerText = `${WA.allGuests.length} հրավ. · ${seated}/${total} նստ.`;
+
+    const filtered = WA.allGuests.filter(g => guestFilter === 'all' || g.side === guestFilter);
+    if (!filtered.length) {
+        container.innerHTML = '<p class="text-center text-[#8c7b66] text-sm italic py-8">Հյուրեր չկան 🍃</p>';
+        return;
+    }
+    container.innerHTML = '';
+    filtered.forEach(guest => {
+        const sideIcon = {bride:'👰',groom:'🤵',mutual:'🤝'}[guest.side]||'';
+        const sideCls  = {bride:'text-[#c4736a]',groom:'text-[#7a9e7e]',mutual:'text-[#8a6c30]'}[guest.side]||'';
+        const seatedCount = guest.members.filter(m=>m.table_id).length;
+        const pct = guest.total_count ? Math.round(seatedCount/guest.total_count*100) : 0;
+        const isOpen = openedGroups.has(guest.id);
+
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl border border-[#e8ddd0] overflow-hidden shadow-sm';
+
+        card.innerHTML = `
+            <div class="flex items-center gap-2 px-3 py-3 cursor-pointer" onclick="toggleGuestGroup(${guest.id}, this)">
+                <input type="checkbox" value="${guest.id}" onchange="toggleGuestSelect(this)"
+                    onclick="event.stopPropagation()"
+                    class="flex-shrink-0 w-4 h-4 accent-[#c4736a]">
+                <span class="text-sm font-semibold text-[#1a1612] flex-1 truncate">${guest.display_name}</span>
+                <span class="text-xs ${sideCls} flex-shrink-0">${sideIcon}</span>
+                <span class="text-[11px] bg-[#f7f3ee] border border-[#e8ddd0] text-[#5c4f3d] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">${seatedCount}/${guest.total_count}</span>
+                <button onclick="event.stopPropagation();confirmDeleteGuest(${guest.id},'${guest.display_name.replace(/'/g,"\\'")}')"
+                    class="text-[#c8bfb2] hover:text-[#c4736a] text-sm px-1 flex-shrink-0">🗑</button>
+                <span class="text-[#c8bfb2] text-xs flex-shrink-0 select-none">${isOpen?'▲':'▼'}</span>
+            </div>
+            <div class="px-3 pb-1">
+                <div class="progress-bar">
+                    <div class="progress-fill ${pct===100?'bg-[#7a9e7e]':'bg-[#c9a96e]'}" style="width:${pct}%"></div>
+                </div>
+            </div>
+            <div class="guest-members-panel ${isOpen?'open':''}" id="gmp-${guest.id}">
+                <div class="border-t border-[#f7f3ee]">
+                    ${guest.members.map(m=>`
+                        <div class="flex items-center gap-2 px-6 py-2 text-xs text-[#5c4f3d] border-b border-[#f7f3ee] last:border-0">
+                            <span class="flex-1">${m.first_name||'(Անանուն)'}</span>
+                            ${m.table_id?`<span class="text-[9px] bg-[#7a9e7e]/10 text-[#7a9e7e] px-1.5 py-0.5 rounded-full">✓ Սեղ.${m.table_id}</span>`:''}
+                            <button onclick="openRename(${m.id},'${(m.first_name||'').replace(/'/g,"\\'")}')"
+                                class="text-[#8c7b66] text-xs">✏</button>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function toggleGuestGroup(id, headerEl) {
+    const panel = document.getElementById(`gmp-${id}`);
+    const arrow = headerEl.querySelector('span:last-child');
+    if (panel.classList.contains('open')) {
+        panel.classList.remove('open'); openedGroups.delete(id); if(arrow)arrow.innerText='▼';
+    } else {
+        panel.classList.add('open'); openedGroups.add(id); if(arrow)arrow.innerText='▲';
+    }
+}
+
+function toggleGuestSelect(cb) {
+    const id = parseInt(cb.value);
+    if (cb.checked) selectedGuests.push(id);
+    else selectedGuests = selectedGuests.filter(x=>x!==id);
+    document.getElementById('mergeBar').classList.toggle('hidden', selectedGuests.length < 2);
+}
+
+async function mergeSelected() {
+    const name = prompt('Նոր ընդհանուր անուն՝');
+    if (!name) return;
+    if (await WA.api.mergeGuests(selectedGuests, name)) {
+        selectedGuests = [];
+        document.getElementById('mergeBar').classList.add('hidden');
+        await reloadAll();
+    }
+}
+
+function openAddGuestSheet() {
+    document.getElementById('m_guestName').value = '';
+    document.getElementById('m_guestCount').value = 1;
+    document.getElementById('m_guestCountDisplay').innerText = 1;
+    openModal('addGuestModal');
+    setTimeout(()=>document.getElementById('m_guestName').focus(),250);
+}
+
+async function submitAddGuest() {
+    const name  = document.getElementById('m_guestName').value.trim();
+    const count = parseInt(document.getElementById('m_guestCount').value);
+    const side  = document.getElementById('m_guestSide').value;
+    if (!name) { document.getElementById('m_guestName').focus(); return; }
+    if (await WA.api.addGuest(name, count, side)) {
+        closeModal('addGuestModal');
+        await reloadAll();
+    }
+}
+
+function confirmDeleteGuest(id, name) {
+    document.getElementById('deleteConfirmText').innerText = `«${name}» — ջնջե՞լ հրավերը։`;
+    openModal('confirmDeleteModal');
+    document.getElementById('deleteConfirmBtn').onclick = async () => {
+        if (await WA.api.deleteGuest(id)) { closeModal('confirmDeleteModal'); await reloadAll(); }
+    };
+}
+
+// ── HALL tab ─────────────────────────────────────────────────────────────────
+function renderTables(tables, allMembers) {
+    const container = document.getElementById('tableList');
+    if (!tables.length) {
+        container.innerHTML = '<p class="text-center text-[#8c7b66] text-sm italic py-8">Սրահն դատարկ է — ՝+ Սեղան՝ ավելացրեք</p>';
+        return;
+    }
+    container.innerHTML = '';
+    tables.forEach(table => {
+        const seatedHere = allMembers.filter(m=>m.table_id===table.id);
+        const free = table.capacity - seatedHere.length;
+        const pct  = Math.round(seatedHere.length/table.capacity*100);
+
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl border border-[#e8ddd0] overflow-hidden shadow-sm';
+        card.innerHTML = `
+            <div class="flex items-center gap-3 px-4 py-3" onclick="openTableDetail(${table.id})">
+                <!-- mini shape -->
+                <div class="table-card-map ${table.category} flex-shrink-0 flex items-center justify-center"
+                    style="width:${table.category==='round'?'44px':'52px'};height:${table.category==='presidium'?'24px':'44px'};">
+                    <span style="font-size:9px;color:#8c7b66;font-weight:700;">${table.table_number}</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-sm font-semibold text-[#1a1612]">Սեղ. ${table.table_number}
+                        <span class="text-[11px] font-normal text-[#8c7b66] ml-1">${WA.catLabel[table.category]||''}</span>
+                    </div>
+                    <div class="progress-bar mt-1.5">
+                        <div class="progress-fill ${pct===100?'bg-[#7a9e7e]':pct>70?'bg-[#c9a96e]':'bg-[#c4736a]/60'}" style="width:${pct}%"></div>
+                    </div>
+                    <div class="text-[10px] text-[#8c7b66] mt-0.5">${seatedHere.length} / ${table.capacity} · ${free} ազատ</div>
+                </div>
+                <div class="flex gap-1.5 flex-shrink-0">
+                    <button onclick="event.stopPropagation();openEditCapacity(${table.id},${table.capacity})"
+                        class="w-8 h-8 rounded-lg border border-[#e8ddd0] bg-[#f7f3ee] flex items-center justify-center text-xs">✏️</button>
+                    <button onclick="event.stopPropagation();confirmDeleteTable(${table.id},'${table.table_number}')"
+                        class="w-8 h-8 rounded-lg border border-[#e8ddd0] bg-[#f7f3ee] flex items-center justify-center text-xs">🗑️</button>
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function openAddTableSheet() {
+    selectedCat = null;
+    document.querySelectorAll('.cat-btn').forEach(b=>b.style.borderColor='#e8ddd0');
+    document.getElementById('m_tableNumber').value = '';
+    document.getElementById('m_tableCapacity').value = 10;
+    document.getElementById('m_tableCapacityDisplay').innerText = 10;
+    openModal('addTableModal');
+}
+
+function selectCat(cat) {
+    selectedCat = cat;
+    document.querySelectorAll('.cat-btn').forEach(b=>b.style.borderColor='#e8ddd0');
+    event.currentTarget.style.borderColor = '#c9a96e';
+    const cap = WA.defaultCapacity[cat]||10;
+    document.getElementById('m_tableCapacity').value = cap;
+    document.getElementById('m_tableCapacityDisplay').innerText = cap;
+}
+
+async function submitAddTable() {
+    if (!selectedCat) { alert('Ընտրեք սեղանի տեսակ'); return; }
+    const num = document.getElementById('m_tableNumber').value.trim();
+    const cap = parseInt(document.getElementById('m_tableCapacity').value);
+    if (!num) { document.getElementById('m_tableNumber').focus(); return; }
+    if (await WA.api.addTable(num, selectedCat, cap)) {
+        closeModal('addTableModal');
+        await reloadAll();
+    }
+}
+
+async function openTableDetail(tableId) {
+    const [tables, guests] = await Promise.all([WA.api.getTables(), WA.api.getGuests()]);
+    const table = tables.find(t=>t.id===tableId);
+    if (!table) return;
+    const allMembers = guests.flatMap(g=>g.members.map(m=>({...m,guestName:g.display_name})));
+    const seated = allMembers.filter(m=>m.table_id===tableId);
+    const free   = table.capacity - seated.length;
+
+    document.getElementById('tableDetailTitle').innerText = `Սեղ. ${table.table_number}`;
+    document.getElementById('tableDetailMeta').innerText  = `${seated.length}/${table.capacity} · ${WA.catLabel[table.category]||''}`;
+
+    const body = document.getElementById('tableDetailBody');
+    body.innerHTML = '';
+
+    // Seated guests
+    seated.sort((a,b)=>(a.seat_index||0)-(b.seat_index||0));
+    seated.forEach(m => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-3 bg-[#f7f3ee] rounded-xl px-4 py-2.5';
+        row.innerHTML = `
+            <span class="text-xs font-bold text-[#c9a96e] w-5">${m.seat_index!=null?m.seat_index+1:'-'}</span>
+            <span class="flex-1 text-sm text-[#1a1612]">👤 ${m.first_name||'Անանուն'}</span>
+            <div class="flex gap-1">
+                <button onclick="openRename(${m.id},'${(m.first_name||'').replace(/'/g,"\\'")}')"
+                    class="w-8 h-8 rounded-lg border border-[#e8ddd0] bg-white flex items-center justify-center text-xs">✏️</button>
+                <button onclick="confirmUnseat(${m.id},'${(m.first_name||'Անանուն').replace(/'/g,"\\'")}')"
+                    class="w-8 h-8 rounded-lg border border-[#e8ddd0] bg-white text-[#c4736a] flex items-center justify-center text-xs">✕</button>
+            </div>
+        `;
+        body.appendChild(row);
+    });
+
+    // Free seats
+    if (free > 0) {
+        const label = document.createElement('div');
+        label.className = 'text-[11px] text-[#8c7b66] font-bold uppercase tracking-wider mt-3 mb-1';
+        label.innerText = `Ազատ (${free})`;
+        body.appendChild(label);
+        for (let i=0;i<free;i++) {
+            const row = document.createElement('div');
+            row.className = 'flex items-center gap-3 border border-dashed border-[#c9a96e] rounded-xl px-4 py-2.5 cursor-pointer';
+            row.innerHTML = `<span class="text-xs text-[#c9a96e]">🪑 Ազատ</span><span class="flex-1"></span><span class="text-xs text-[#c9a96e] font-bold">+ Ավ.</span>`;
+            row.onclick = () => { closeModal('tableDetailModal'); openGuestPickerForTable(tableId); };
+            body.appendChild(row);
+        }
+    }
+
+    // Extra: add guest button
+    if (free > 0) {
+        const addBtn = document.createElement('button');
+        addBtn.className = 'w-full py-3 mt-2 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold';
+        addBtn.innerText = '+ Ավ. հյուր';
+        addBtn.onclick = () => { closeModal('tableDetailModal'); openGuestPickerForTable(tableId); };
+        body.appendChild(addBtn);
+    }
+
+    openModal('tableDetailModal');
+}
+
+function openGuestPickerForTable(tableId) {
+    const list = document.getElementById('guestPickerList');
+    list.innerHTML = '';
+    const unseatedIds = new Set(WA.unseatedMembers.map(m=>m.id));
+
+    let any = false;
+    WA.allGuests.forEach(guest=>{
+        const um = guest.members.filter(m=>unseatedIds.has(m.id));
+        if(!um.length) return;
+        any = true;
+        const hdr = document.createElement('div');
+        hdr.className = 'text-[11px] font-bold text-[#8c7b66] uppercase tracking-wider mt-3 mb-1 px-1';
+        hdr.innerText = guest.display_name;
+        list.appendChild(hdr);
+        um.forEach(m=>{
+            const btn = document.createElement('button');
+            btn.className = 'w-full text-left px-4 py-3 rounded-xl border border-[#e8ddd0] bg-white text-sm font-medium text-[#1a1612] flex justify-between items-center mb-1';
+            btn.innerHTML = `<span>👤 ${m.first_name||'Անանուն'}</span><span class="text-[#c9a96e] font-bold text-lg">+</span>`;
+            btn.onclick = async () => {
+                try { await WA.seatOnTable(m.id, tableId); closeModal('guestPickerModal'); await reloadAll(); }
+                catch(e) { alert(e.message); }
+            };
+            list.appendChild(btn);
+        });
+    });
+    if (!any) {
+        list.innerHTML = '<p class="text-center text-[#8c7b66] text-sm italic py-6">Բոլոր հյուրերը նստ. 🎉</p>';
+    }
+    openModal('guestPickerModal');
+}
+
+function confirmDeleteTable(id, num) {
+    document.getElementById('deleteConfirmText').innerText = `«Սեղ. ${num}» — ջնջե՞լ։ Բոլոր հյուրերը կազատվեն։`;
+    openModal('confirmDeleteModal');
+    document.getElementById('deleteConfirmBtn').onclick = async () => {
+        if (await WA.api.deleteTable(id)) { closeModal('confirmDeleteModal'); await reloadAll(); }
+    };
+}
+
+function openEditCapacity(tableId, current) {
+    document.getElementById('m_editCapacity').value = current;
+    document.getElementById('m_editCapacityDisplay').innerText = current;
+    openModal('editCapacityModal');
+    document.getElementById('editCapacityConfirmBtn').onclick = async () => {
+        const cap = parseInt(document.getElementById('m_editCapacity').value);
+        try { await WA.api.updateCapacity(tableId, cap); closeModal('editCapacityModal'); await reloadAll(); }
+        catch(e) { alert(e.message); }
+    };
+}
+
+// ── UNSEATED tab ──────────────────────────────────────────────────────────────
+function setUnseatedFilter(f) {
+    unseatedFilter = f;
+    document.querySelectorAll('.uf-pill').forEach(b=>{
+        b.className='uf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]';
+    });
+    const active = document.getElementById(`uf-${f}`);
+    active.className = 'uf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#1a1612] text-[#e8d5b0]';
+    renderUnseated();
+}
+
+function renderUnseated() {
+    const container = document.getElementById('unseatedList');
+    const totalM    = WA.allGuests.reduce((s,g)=>s+g.total_count,0);
+    const unseatedN = WA.unseatedMembers.length;
+    document.getElementById('unseatedSummary').innerText =
+        `${totalM-unseatedN} / ${totalM} նստ. · ${unseatedN} Չ.Ն.`;
+
+    const unseatedIds = new Set(WA.unseatedMembers.map(m=>m.id));
+    const filtered    = WA.allGuests.filter(g=>unseatedFilter==='all'||g.side===unseatedFilter);
+
+    let any = false;
+    container.innerHTML = '';
+    const frag = document.createDocumentFragment();
+
+    filtered.forEach(guest=>{
+        const guestUnseated = guest.members.filter(m=>unseatedIds.has(m.id));
+        const total = guest.members.length;
+        const uc    = guestUnseated.length;
+        if (total===0) return;
+        any = true;
+
+        const pillCls  = uc===0?'bg-[#7a9e7e]/10 text-[#7a9e7e]':uc===total?'bg-[#c4736a]/10 text-[#c4736a]':'bg-[#c9a96e]/15 text-[#8a6c30]';
+        const pillText = uc===0?'✓ Բոլ.':uc===total?`${uc} Չ.Ն.`:`${uc}/${total}`;
+
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl border border-[#e8ddd0] overflow-hidden shadow-sm';
+        card.innerHTML = `
+            <div class="flex items-center gap-2 px-4 py-3">
+                <span class="text-sm font-semibold text-[#1a1612] flex-1 truncate">${guest.display_name}</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold ${pillCls}">${pillText}</span>
+                <button onclick="openSeatCountSheet(${guest.id})"
+                    ${uc===0?'disabled':''}
+                    class="flex-shrink-0 text-xs font-semibold px-3 py-2 rounded-lg transition-colors
+                    ${uc===0?'opacity-30 bg-[#f7f3ee] text-[#8c7b66]':'bg-[#1a1612] text-[#e8d5b0]'}">
+                    Նստ. ➔
+                </button>
+            </div>
+            ${guestUnseated.length>0?`
+            <div class="border-t border-[#f7f3ee]">
+                ${guestUnseated.map(m=>`
+                    <div class="flex items-center gap-2 px-6 py-2 text-xs text-[#5c4f3d] border-b border-[#f7f3ee] last:border-0">
+                        <span class="flex-1">${m.first_name||'Անանուն'}</span>
+                        <span class="text-[9px] text-[#c8bfb2]">Չ.Ն.</span>
+                    </div>
+                `).join('')}
+            </div>`:''}
+        `;
+        frag.appendChild(card);
+    });
+    container.appendChild(frag);
+    if (!any) container.innerHTML = '<p class="text-center text-[#8c7b66] text-sm italic py-8">Բոլոր հյուրերը նստ. 🎉</p>';
+}
+
+function openSeatCountSheet(guestId) {
+    const guest = WA.allGuests.find(g=>g.id===guestId);
+    if (!guest) return;
+    const unseatedIds = new Set(WA.unseatedMembers.map(m=>m.id));
+    const um = guest.members.filter(m=>unseatedIds.has(m.id));
+    if (!um.length) { alert('Բոլոր անդամները արդ. նստ.'); return; }
+
+    pendingSeatGuest = { guestId, display_name:guest.display_name, unseatedMembers:um };
+    pendingSeatCount = um.length;
+
+    const inp = document.getElementById('m_seatCount');
+    inp.value = pendingSeatCount;
+    inp.max   = um.length;
+    document.getElementById('m_seatCountDisplay').innerText = pendingSeatCount;
+    document.getElementById('seatCountTitle').innerText     = guest.display_name;
+    document.getElementById('seatCountHint').innerText      = `${um.length} հոգի սպ.`;
+    document.getElementById('seatCountMaxLabel').innerText  = `Առ. ${um.length}`;
+    openModal('seatCountModal');
+}
+
+async function confirmSeatCount() {
+    if (!pendingSeatGuest) return;
+    pendingSeatCount = parseInt(document.getElementById('m_seatCount').value);
+    closeModal('seatCountModal');
+    await openTablePickerForGroup(pendingSeatGuest, pendingSeatCount);
+}
+
+async function openTablePickerForGroup(guestInfo, count) {
+    const [tables, guests] = await Promise.all([WA.api.getTables(), WA.api.getGuests()]);
+    const allMembers = guests.flatMap(g=>g.members);
+
+    document.getElementById('tablePickerTitle').innerText = `${count} հոգ. համ.`;
+    const list = document.getElementById('tablePickerList');
+    list.innerHTML = '';
+
+    if (!tables.length) {
+        list.innerHTML = '<p class="text-center text-[#8c7b66] text-sm italic py-6">Սեղաններ չկան</p>';
+        openModal('tablePickerModal'); return;
+    }
+
+    tables.forEach(table=>{
+        const seated   = allMembers.filter(m=>m.table_id===table.id).length;
+        const avail    = table.capacity - seated;
+        const canFit   = avail >= count;
+        const pct      = Math.round(seated/table.capacity*100);
+
+        const btn = document.createElement('button');
+        btn.disabled = !canFit;
+        btn.className = `w-full text-left px-4 py-3 rounded-xl border mb-1 transition-all
+            ${canFit?'border-[#e8ddd0] bg-white':'border-[#f0eae2] bg-[#faf8f5] opacity-40'}`;
+        btn.innerHTML = `
+            <div class="flex justify-between items-center mb-1">
+                <span class="text-sm font-semibold text-[#1a1612]">Սեղ. ${table.table_number}</span>
+                <span class="text-[10px] text-[#8c7b66]">${WA.catLabel[table.category]||''}</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="progress-bar flex-1"><div class="progress-fill ${canFit?'bg-[#7a9e7e]':'bg-[#c4736a]'}" style="width:${pct}%"></div></div>
+                <span class="text-[10px] font-medium ${canFit?'text-[#7a9e7e]':'text-[#c4736a]'}">${avail} ազ.</span>
+            </div>
+        `;
+        if (canFit) btn.onclick = async () => {
+            closeModal('tablePickerModal');
+            for (const member of guestInfo.unseatedMembers.slice(0,count)) {
+                try { await WA.seatOnTable(member.id, table.id); }
+                catch(e) { alert(e.message); break; }
+            }
+            await reloadAll();
+        };
+        list.appendChild(btn);
+    });
+    openModal('tablePickerModal');
+}
+
+// ── Rename ────────────────────────────────────────────────────────────────────
+function openRename(memberId, oldName) {
+    document.getElementById('renameInput').value = oldName;
+    openModal('renameMemberModal');
+    setTimeout(()=>document.getElementById('renameInput').focus(),250);
+    document.getElementById('renameConfirmBtn').onclick = async () => {
+        const name = document.getElementById('renameInput').value.trim();
+        if (!name) return;
+        if (await WA.api.renameMember(memberId, name)) {
+            closeModal('renameMemberModal');
+            await reloadAll();
+        }
+    };
+}
+
+// ── Unseat confirm ────────────────────────────────────────────────────────────
+function confirmUnseat(memberId, name) {
+    document.getElementById('deleteConfirmText').innerText = `«${name}» — հեռ. սեղ.?`;
+    openModal('confirmDeleteModal');
+    document.getElementById('deleteConfirmBtn').onclick = async () => {
+        await WA.api.unseatMember(memberId);
+        closeModal('confirmDeleteModal');
+        closeModal('tableDetailModal');
+        await reloadAll();
+    };
+}
+
+// ── PDF ───────────────────────────────────────────────────────────────────────
+async function exportToPDF() {
+    const [tables, guests] = await Promise.all([WA.api.getTables(), WA.api.getGuests()]);
+    tables.sort((a,b)=>parseInt(a.table_number)-parseInt(b.table_number));
+    const allMembers = guests.flatMap(g=>g.members);
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({orientation:'p',unit:'mm',format:'a4'});
+    doc.setFont("Helvetica","bold");
+    doc.setFontSize(18);
+    doc.text("HURERI NSTECMAN CUCAK", 14, 15);
+
+    const rows = [];
+    tables.forEach(table=>{
+        const here = allMembers.filter(m=>m.table_id===table.id).sort((a,b)=>(a.seat_index||0)-(b.seat_index||0));
+        if (!here.length) { rows.push([`Sg. ${table.table_number}`,"Datark seghan",""]); }
+        else here.forEach((m,i)=>{ rows.push([i===0?`Seghan ${table.table_number}`:"",`Ator ${m.seat_index!=null?m.seat_index+1:i+1}`,m.first_name||"Ananun"]); });
+        rows.push(["","",""]);
+    });
+    doc.autoTable({
+        startY:22, head:[['Seghan','Ator','Anun']],body:rows,theme:'striped',
+        headStyles:{fillColor:[26,22,18],textColor:[232,213,176],fontStyle:'bold'},
+        styles:{font:'Helvetica',fontSize:10,cellPadding:3},
+        columnStyles:{0:{fontStyle:'bold',cellWidth:40},1:{cellWidth:30}},
+    });
+    doc.save(`wedding_${weddingId}.pdf`);
+}
+</script>
+</body>
+</html>
