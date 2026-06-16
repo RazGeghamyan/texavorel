@@ -19,7 +19,7 @@ app = FastAPI(
     description="Ինտերակտիվ սրահի և հյուրերի նստեցման համակարգ",
     version="1.0.0"
 )
-
+app.mount("/static", StaticFiles(directory="static"), name="static")
 # Կապում ենք API ռոուտերները
 app.include_router(wedding_router)
 app.include_router(table_router)
