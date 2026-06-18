@@ -168,9 +168,6 @@ async function confirmSeatCount() {
 
 // ── Table Picker Modal ────────────────────────────────────────────────────────
 
-/**
- * Reads State.allTables + State.allGuests — no fetch.
- */
 function openTablePickerModal(guestInfo, count) {
     document.getElementById('tablePickerTitle').innerText = `${count} հոգ. համ.`;
     const list = document.getElementById('tablePickerList');
@@ -221,21 +218,34 @@ function openTablePickerModal(guestInfo, count) {
     openModal('tablePickerModal');
 }
 
+/**
+ * ✨ Սրբագրված ֆունկցիա.
+ * Լուպի ներսում կատարում է սուրգիական patchState ամեն անդամի համար,
+ * որպեսզի վիզուալ մասը ճիշտ թարմանա առանց GET հարցումների։
+ */
 async function seatGroupOnTable(guestInfo, count, tableId) {
     for (const member of guestInfo.unseatedMembers.slice(0, count)) {
-        const ok = await seatMemberOnTable(member.id, tableId);
-        if (!ok) break;
-        const placed = State.allGuests.flatMap(g => g.members).find(m => m.id === member.id);
-        if (placed) placed.table_id = tableId;
+        // Գտնում ենք հաջորդ ազատ աթոռի ինդեքսը սթեյթից
+        const seatIndex = findNextFreeSeatFromState(tableId);
+        if (seatIndex === null) {
+            alert('Այս սեղանն արդեն զբաղված է։');
+            break;
+        }
+
+        // Կանչում ենք API-ն
+        const res = await API.seatMember(member.id, tableId, seatIndex);
+        if (res.ok) {
+            // ✅ Մաքուր Surgical update` առանց updateAppState-ի
+            patchState({ memberSeated: { memberId: member.id, tableId, seatIndex } });
+        } else {
+            alert('Չհաջողվեց նստեցնել հյուրին։');
+            break;
+        }
     }
-    // ❌ await updateAppState() հեռացված է, քանի որ լուպի ներսի ֆունկցիաներն արդեն անում են պետքական պաչերը
 }
 
 // ── Guest Picker (from Table Sheet "free seat") ───────────────────────────────
 
-/**
- * Reads State.allGuests + State.unseatedMembers — no fetch.
- */
 function openGuestPicker(tableId) {
     State.pendingSeatTableId = tableId;
     const list = document.getElementById('guestPickerList');
@@ -259,9 +269,20 @@ function openGuestPicker(tableId) {
             btn.className = 'w-full text-left px-3 py-2 rounded-lg border border-[#e8ddd0] bg-white text-xs font-medium text-[#1a1612] flex justify-between items-center hover:border-[#c9a96e] hover:bg-[#c9a96e]/5 transition-all mb-1';
             btn.innerHTML = `<span>👤 ${m.first_name || 'Անանուն'}</span><span class="text-[#c9a96e] font-bold text-sm">+</span>`;
             btn.addEventListener('click', async () => {
-                await seatMemberOnTable(m.id, tableId);
-                closeModal('guestPickerModal');
-                // ❌ await updateAppState() հեռացված է
+                const seatIndex = findNextFreeSeatFromState(tableId);
+                if (seatIndex === null) {
+                    alert('Այս սեղանն արդեն զբաղված է։');
+                    return;
+                }
+
+                const res = await API.seatMember(m.id, tableId, seatIndex);
+                if (res.ok) {
+                    closeModal('guestPickerModal');
+                    // ✅ Կիրառում ենք Surgical update
+                    patchState({ memberSeated: { memberId: m.id, tableId, seatIndex } });
+                } else {
+                    alert('Չհաջողվեց նստեցնել հյուրին։');
+                }
             });
             list.appendChild(btn);
         });

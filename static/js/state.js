@@ -3,24 +3,24 @@
  *
  * ARCHITECTURE: Surgical Updates
  * ───────────────────────────────
- *  User Action
- *      │
- *      ▼
- *  Mutation (API write)  ← server response → patch State directly
- *      │
- *      ▼
- *  patchState(changes)   ← only update what actually changed
- *      │
- *      ▼
- *  render*() functions   ← only re-render affected panels
+ * User Action
+ * │
+ * ▼
+ * Mutation (API write)  ← server response → patch State directly
+ * │
+ * ▼
+ * patchState(changes)   ← only update what actually changed
+ * │
+ * ▼
+ * render*() functions   ← only re-render affected panels
  *
  * updateAppState()  — full reload, used ONLY on initial page load.
  * patchState(changes) — surgical, used after every mutation.
  *
  * PATCH RULES (what changed → what to render):
- *   guests changed  → renderGuestsPanel(), renderUnseatedPanel()
- *   tables changed  → renderHall()
- *   both changed    → all three
+ * guests changed  → renderGuestsPanel(), renderUnseatedPanel()
+ * tables changed  → renderHall()
+ * both changed    → all three
  */
 
 // ── Shared mutable state ──────────────────────────────────────────────────────
@@ -129,8 +129,27 @@ function patchState(changes) {
         tablesChanged = true;
     }
     if (changes.tableRemoved !== undefined) {
-        State.allTables = State.allTables.filter(t => t.id !== changes.tableRemoved);
+        const removedTableId = parseInt(changes.tableRemoved);
+
+        // 1. Հեռացնում ենք սեղանը State-ից
+        State.allTables = State.allTables.filter(t => t.id !== removedTableId);
+
+        // 2. Մաքրում ենք նաև սեղանի դիրքը հիշողությունից ✨
+        if (State.tablePositions[removedTableId]) {
+            delete State.tablePositions[removedTableId];
+        }
+
+        // 3. 🔄 Ազատում ենք հյուրերին State-ի մեջ (սարքում ենք table_id-ն null)
+        State.allGuests = State.allGuests.map(g => ({
+            ...g,
+            members: g.members.map(m =>
+                m.table_id === removedTableId ? { ...m, table_id: null, seat_index: null } : m
+            )
+        }));
+
+        // 4. ✨ Ակտիվացնում ենք երկու դրոշակներն էլ
         tablesChanged = true;
+        guestsChanged = true; // 🔥 Սա ավտոմատ կվերա-ռենդեր անի թե՛ սրահը, թե՛ չնստածների պանելը
     }
     if (changes.tableUpdated !== undefined) {
         State.allTables = State.allTables.map(t =>

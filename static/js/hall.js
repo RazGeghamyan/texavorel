@@ -231,6 +231,7 @@ function buildTableElement(table, allMembers) {
 
     const actions = document.createElement('div');
     actions.className = 'table-actions absolute top-full mt-10 left-0 w-full flex justify-center gap-1.5 z-30 whitespace-nowrap pointer-events-auto';
+
     actions.innerHTML = `
         <button onclick="event.stopPropagation();rotateTable(${table.id},-45)"
             class="bg-white border border-[#e8ddd0] hover:border-[#c9a96e] rounded-md text-[10px] font-medium text-[#5c4f3d] shadow-sm cursor-pointer transition-all"
@@ -555,28 +556,14 @@ function deleteTable(id) {
         async () => {
             const res = await API.deleteTable(id);
             if (res.ok) {
-                delete State.tablePositions[id];
                 closeModal('confirmDeleteModal');
-                // ✅ No GET — remove table + unseat its members from State
-                _unseatMembersOfTable(id);
+                // ✅ Ուղղակի փոխանցում ենք ID-ն patchState-ին, ոչ մի սթեյթի ձեռքով փոփոխություն այստեղ չենք անում
                 patchState({ tableRemoved: id });
             }
         },
     );
 }
 
-/**
- * When a table is deleted, its members become unseated.
- * Patch allGuests in-place before calling patchState.
- */
-function _unseatMembersOfTable(tableId) {
-    State.allGuests = State.allGuests.map(g => ({
-        ...g,
-        members: g.members.map(m =>
-            m.table_id === tableId ? { ...m, table_id: null, seat_index: null } : m
-        ),
-    }));
-}
 
 // ── Dropdown menu ─────────────────────────────────────────────────────────────
 

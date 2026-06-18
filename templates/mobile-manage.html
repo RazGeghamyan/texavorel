@@ -9,59 +9,99 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'DM Sans', sans-serif; overscroll-behavior: none; }
-        .font-cormorant { font-family: 'Cormorant Garamond', serif; }
-        ::-webkit-scrollbar { width: 2px; }
-        ::-webkit-scrollbar-thumb { background: #d4b896; border-radius: 10px; }
-        .tab-panel { display: none; }
-        .tab-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
-        .bottom-nav-btn { transition: all 0.18s; }
-        .bottom-nav-btn.active .nav-icon { transform: translateY(-2px); }
-        .bottom-nav-btn.active .nav-label { color: #c9a96e; font-weight: 600; }
-        .bottom-nav-btn.active .nav-icon-wrap { background: #c9a96e15; }
-        .modal-overlay {
-            position: fixed; inset: 0;
-            background: rgba(26,22,18,0.6);
-            backdrop-filter: blur(6px);
-            display: none; align-items: flex-end; justify-content: center;
-            z-index: 300;
-        }
-        .modal-overlay.open { display: flex; }
-        .modal-sheet {
-            background: #fdfaf6;
-            border-radius: 20px 20px 0 0;
-            width: 100%; max-height: 92vh;
-            overflow-y: auto;
-            padding-bottom: env(safe-area-inset-bottom, 16px);
-            animation: slideUp 0.22s ease-out;
-        }
-        @keyframes slideUp {
-            from { transform: translateY(40px); opacity: 0.6; }
-            to   { transform: translateY(0);    opacity: 1; }
-        }
-        .modal-handle { width: 36px; height: 4px; background: #d4c4b0; border-radius: 2px; margin: 10px auto 0; }
-        .table-card-map { background: #e8e0d4; border: 2px solid #cfc4b4; }
-        .table-card-map.round { border-radius: 50%; }
-        .table-card-map.presidium { border-radius: 6px; background: #ddd5c4; border-color: #c4b89e; }
-        .table-card-map.rectangle, .table-card-map.double_rectangle { border-radius: 8px; }
-        /* Side border accents on table cards */
-        .table-card-side-bride { border-left: 3px solid #c4736a !important; }
-        .table-card-side-groom { border-left: 3px solid #7a9e7e !important; }
-        .table-card-side-mutual { border-left: 3px solid #c9a96e !important; }
-        input, select, button { font-size: 16px; }
-        .progress-bar { height: 3px; background: #f0eae2; border-radius: 2px; overflow: hidden; }
-        .progress-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
-        .guest-members-panel { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
-        .guest-members-panel.open { max-height: 400px; }
-        input:focus, select:focus, button:focus { outline: none; }
-        .bottom-nav { padding-bottom: env(safe-area-inset-bottom, 8px); }
-        /* Side selection buttons */
-        .side-btn { transition: all 0.15s; }
-        .side-btn.active-bride  { border-color: #c4736a !important; background: rgba(196,115,106,0.1); color: #c4736a; }
-        .side-btn.active-groom  { border-color: #7a9e7e !important; background: rgba(122,158,126,0.1); color: #7a9e7e; }
-        .side-btn.active-mutual { border-color: #c9a96e !important; background: rgba(201,169,110,0.1); color: #8a6c30; }
-    </style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'DM Sans', sans-serif; overscroll-behavior: none; background-color: #EEF2E4; color: #787878; }
+    .font-cormorant { font-family: 'Cormorant Garamond', serif; }
+
+    ::-webkit-scrollbar { width: 2px; }
+    ::-webkit-scrollbar-thumb { background: #7D936C; border-radius: 10px; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    .bottom-nav-btn { transition: all 0.18s; }
+    .bottom-nav-btn.active .nav-icon { transform: translateY(-2px); }
+    .bottom-nav-btn.active .nav-label { color: #7D936C; font-weight: 600; }
+    .bottom-nav-btn.active .nav-icon-wrap { background: rgba(125, 147, 108, 0.15); }
+
+    .modal-overlay {
+        position: fixed; inset: 0;
+        background: rgba(68, 94, 63, 0.6);
+        backdrop-filter: blur(6px);
+        display: none; align-items: flex-end; justify-content: center;
+        z-index: 300;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-sheet {
+        background: #FFFFFF;
+        border-radius: 20px 20px 0 0;
+        width: 100%; max-height: 92vh;
+        overflow-y: auto;
+        padding-bottom: env(safe-area-inset-bottom, 16px);
+        animation: slideUp 0.22s ease-out;
+    }
+    @keyframes slideUp {
+        from { transform: translateY(40px); opacity: 0.6; }
+        to   { transform: translateY(0);    opacity: 1; }
+    }
+    .modal-handle { width: 36px; height: 4px; background: #7D936C; border-radius: 2px; margin: 10px auto 0; }
+
+    .table-card-map { background: #EEF2E4; border: 2px solid #7D936C; }
+    .table-card-map.round { border-radius: 50%; }
+    .table-card-map.presidium { border-radius: 6px; background: #445E3F; border-color: #445E3F; }
+    .table-card-map.rectangle, .table-card-map.double_rectangle { border-radius: 8px; }
+
+    /* Side border accents */
+    .table-card-side-bride { border-left: 3px solid #7D936C !important; }
+    .table-card-side-groom { border-left: 3px solid #7D936C !important; }
+    .table-card-side-mutual { border-left: 3px solid #7D936C !important; }
+
+    input, select, button { font-size: 16px; }
+    .progress-bar { height: 3px; background: #EEF2E4; border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; background-color: #7D936C !important; border-radius: 2px; transition: width 0.3s; }
+
+    .guest-members-panel { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
+    .guest-members-panel.open { max-height: 400px; }
+
+    input:focus, select:focus, button:focus { outline: none; }
+    .bottom-nav { padding-bottom: env(safe-area-inset-bottom, 8px); }
+
+    /* Side selection buttons */
+    .side-btn { transition: all 0.15s; }
+    .side-btn.active-bride  { border-color: #7D936C !important; background: rgba(125, 147, 108, 0.1); color: #7D936C; }
+    .side-btn.active-groom  { border-color: #7D936C !important; background: rgba(125, 147, 108, 0.1); color: #7D936C; }
+    .side-btn.active-mutual { border-color: #7D936C !important; background: rgba(125, 147, 108, 0.1); color: #445E3F; }
+
+    /* Նոր ավատարների կլորներ */
+    .guest-avatar-circle {
+        width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+        border-radius: 50%; background: #EEF2E4; border: 1px solid #7D936C;
+        font-size: 8px; color: #445E3F; font-weight: bold;
+    }
+
+        /* Համատարած գույների թարմացում */
+/* Վերևի հեդեր */
+header { background-color: #445E3F !important; }
+
+/* Ներքևի նավիգացիա */
+.bottom-nav { background-color: #445E3F !important; }
+
+/* Մուգ գույն ունեցող կոճակներ */
+.bg-[#1a1612] { background-color: #445E3F !important; }
+
+/* Ակտիվ կոճակների տեքստ (օրինակ՝ "Բոլ." կոճակը) */
+.bg-[#1a1612] { color: #FFFFFF !important; }
+
+/* Ընդհանուր էջի ֆոն */
+body { background-color: #EEF2E4 !important; }
+
+/* Ներքևի մենյուի ակտիվ վիճակի գույն */
+.bottom-nav-btn.active .nav-label { color: #7D936C !important; }
+.bottom-nav-btn.active .nav-icon-wrap { background: rgba(125, 147, 108, 0.2) !important; }
+
+
+
+</style>
 </head>
 <body class="bg-[#f7f3ee] text-[#1a1612] h-screen flex flex-col overflow-hidden">
 
@@ -78,10 +118,10 @@
     <div id="tab-guests" class="tab-panel active">
         <div class="bg-[#fefcf9] border-b border-[#e8ddd0] px-4 py-2 flex items-center gap-3 flex-shrink-0">
             <div id="guestSummary" class="text-[11px] text-[#8c7b66] flex-1">Բեռնվում...</div>
-            <button onclick="openAddGuestSheet()" class="bg-[#1a1612] text-[#e8d5b0] text-xs font-semibold px-3 py-1.5 rounded-lg">＋ Հյուր</button>
+            <button onclick="openAddGuestSheet()" class="bg-[#445E3F] text-[#e8d5b0] text-xs font-semibold px-3 py-1.5 rounded-lg">＋ Հյուր</button>
         </div>
         <div class="flex gap-2 px-3 py-2 bg-[#fefcf9] border-b border-[#e8ddd0] flex-shrink-0">
-            <button onclick="setGuestFilter('all')"   id="gf-all"   class="gf-pill active flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#1a1612] text-[#e8d5b0]">Բոլ.</button>
+            <button onclick="setGuestFilter('all')"   id="gf-all"   class="gf-pill active flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#445E3F] text-[#e8d5b0]">Բոլ.</button>
             <button onclick="setGuestFilter('bride')" id="gf-bride" class="gf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]">👰</button>
             <button onclick="setGuestFilter('groom')" id="gf-groom" class="gf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]">🤵</button>
         </div>
@@ -97,11 +137,11 @@
     <div id="tab-hall" class="tab-panel">
         <div class="bg-[#fefcf9] border-b border-[#e8ddd0] px-4 py-2 flex items-center gap-2 flex-shrink-0">
             <div id="hallSummary" class="text-[11px] text-[#8c7b66] flex-1"></div>
-            <button onclick="openAddTableSheet()" class="bg-[#1a1612] text-[#e8d5b0] text-xs font-semibold px-3 py-1.5 rounded-lg">＋ Սեղ.</button>
+            <button onclick="openAddTableSheet()" class="bg-[#445E3F] text-[#e8d5b0] text-xs font-semibold px-3 py-1.5 rounded-lg">＋ Սեղ.</button>
         </div>
         <!-- Hall side filter -->
         <div class="flex gap-2 px-3 py-2 bg-[#fefcf9] border-b border-[#e8ddd0] flex-shrink-0">
-            <button onclick="setHallFilter('all')"    id="hf-all"    class="hf-pill active flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#1a1612] text-[#e8d5b0]">Բոլ.</button>
+            <button onclick="setHallFilter('all')" id="hf-all" class="hf-pill active flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#445E3F] text-[#e8d5b0]">Բոլ.</button>
             <button onclick="setHallFilter('bride')"  id="hf-bride"  class="hf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]">👰</button>
             <button onclick="setHallFilter('groom')"  id="hf-groom"  class="hf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]">🤵</button>
             <button onclick="setHallFilter('mutual')" id="hf-mutual" class="hf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]">🤝</button>
@@ -117,7 +157,7 @@
             <div id="unseatedSummary" class="text-[11px] text-[#8c7b66]">Բեռնվում...</div>
         </div>
         <div class="flex gap-2 px-3 py-2 bg-[#fefcf9] border-b border-[#e8ddd0] flex-shrink-0">
-            <button onclick="setUnseatedFilter('all')"   id="uf-all"   class="uf-pill active flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#1a1612] text-[#e8d5b0]">Բոլ.</button>
+            <button onclick="setUnseatedFilter('all')"   id="uf-all"   class="uf-pill active flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#445E3F] text-[#e8d5b0]">Բոլ.</button>
             <button onclick="setUnseatedFilter('bride')" id="uf-bride" class="uf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]">👰</button>
             <button onclick="setUnseatedFilter('groom')" id="uf-groom" class="uf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]">🤵</button>
         </div>
@@ -174,7 +214,7 @@
                     </select>
                 </div>
             </div>
-            <button onclick="submitAddGuest()" class="w-full py-3.5 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold">＋ Ավ.</button>
+            <button onclick="submitAddGuest()" class="w-full py-3.5 bg-[#445E3F] text-[#e8d5b0] rounded-xl text-sm font-semibold">＋ Ավ.</button>
         </div>
     </div>
 </div>
@@ -220,7 +260,7 @@
                 </div>
                 <input type="hidden" id="m_tableCapacity" value="10">
             </div>
-            <button onclick="submitAddTable()" class="w-full py-3.5 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold">Ստ. ✓</button>
+            <button onclick="submitAddTable()" class="w-full py-3.5 bg-[#445E3F] text-[#e8d5b0] rounded-xl text-sm font-semibold">Ստ. ✓</button>
         </div>
     </div>
 </div>
@@ -262,7 +302,7 @@
         <div class="px-5 pt-4 pb-3 border-b border-[#e8ddd0]"><div class="font-cormorant text-xl font-bold">Անուն</div></div>
         <div class="p-5 space-y-4">
             <input id="renameInput" type="text" class="w-full px-4 py-3 rounded-xl border border-[#e8ddd0] bg-white text-sm" style="font-size:16px;">
-            <button id="renameConfirmBtn" class="w-full py-3.5 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold">Պահ. ✓</button>
+            <button id="renameConfirmBtn" class="w-full py-3.5 bg-[#445E3F] text-[#e8d5b0] rounded-xl text-sm font-semibold">Պահ. ✓</button>
         </div>
     </div>
 </div>
@@ -279,7 +319,7 @@
                 <button onclick="changeM('m_editCapacity',1)"  class="w-12 h-12 rounded-full border border-[#e8ddd0] bg-white flex items-center justify-center text-2xl">+</button>
             </div>
             <input type="hidden" id="m_editCapacity" value="12">
-            <button id="editCapacityConfirmBtn" class="w-full py-3.5 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold">Պահ. ✓</button>
+            <button id="editCapacityConfirmBtn" class="w-full py-3.5 bg-[#445E3F] text-[#e8d5b0] rounded-xl text-sm font-semibold">Պահ. ✓</button>
         </div>
     </div>
 </div>
@@ -316,7 +356,7 @@
             </div>
             <input type="hidden" id="m_seatCount" value="1">
             <div id="seatCountMaxLabel" class="text-[11px] text-[#8c7b66] text-center"></div>
-            <button onclick="confirmSeatCount()" class="w-full py-3.5 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold">Ընտ. Սեղ. ➔</button>
+            <button onclick="confirmSeatCount()" class="w-full py-3.5 bg-[#445E3F] text-[#e8d5b0] rounded-xl text-sm font-semibold">Ընտ. Սեղ. ➔</button>
         </div>
     </div>
 </div>
@@ -438,7 +478,7 @@ function setHallFilter(f) {
     document.querySelectorAll('.hf-pill').forEach(b=>{
         b.className='hf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]';
     });
-    document.getElementById(`hf-${f}`).className='hf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#1a1612] text-[#e8d5b0]';
+    document.getElementById(`hf-${f}`).className='hf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#445E3F] text-[#e8d5b0]';
     // Re-render table list with filter
     WA.api.getTables().then(tables => {
         const allMembers = WA.allGuests.flatMap(g=>g.members);
@@ -452,7 +492,7 @@ function setGuestFilter(f) {
     document.querySelectorAll('.gf-pill').forEach(b=>{
         b.className='gf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]';
     });
-    document.getElementById(`gf-${f}`).className='gf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#1a1612] text-[#e8d5b0]';
+    document.getElementById(`gf-${f}`).className='gf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#445E3F] text-[#e8d5b0]';
     renderGuests();
 }
 
@@ -462,7 +502,7 @@ function renderGuests() {
     const seated = WA.allGuests.flatMap(g=>g.members).filter(m=>m.table_id).length;
     document.getElementById('guestSummary').innerText = `${WA.allGuests.length} հրավ. · ${seated}/${total} նստ.`;
     const filtered = WA.allGuests.filter(g=>guestFilter==='all'||g.side===guestFilter);
-    if (!filtered.length) { container.innerHTML='<p class="text-center text-[#8c7b66] text-sm italic py-8">Հ. չկան 🍃</p>'; return; }
+    if (!filtered.length) { container.innerHTML='<p class="text-center text-[#8c7b66] text-sm italic py-8">Հյուրեր չկան</p>'; return; }
     container.innerHTML='';
     filtered.forEach(guest=>{
         const sideIcon={bride:'👰',groom:'🤵',mutual:'🤝'}[guest.side]||'';
@@ -486,7 +526,7 @@ function renderGuests() {
                 <div class="border-t border-[#f7f3ee]">
                     ${guest.members.map(m=>`
                         <div class="flex items-center gap-2 px-6 py-2 text-xs text-[#5c4f3d] border-b border-[#f7f3ee] last:border-0">
-                            <span class="flex-1">${m.first_name||'(Anan.)'}</span>
+                            <span class="flex-1">${m.first_name||'(անանուն)'}</span>
                             ${m.table_id?'<span class="text-[9px] bg-[#7a9e7e]/10 text-[#7a9e7e] px-1.5 py-0.5 rounded-full">✓</span>':''}
                             <button onclick="openRename(${m.id},'${(m.first_name||'').replace(/'/g,"\\'")}')" class="text-[#8c7b66] text-xs">✏</button>
                         </div>`).join('')}
@@ -538,8 +578,8 @@ function renderTables(tables, allMembers) {
     const filtered=tables.filter(t=>hallFilter==='all'||(t.side||'mutual')===hallFilter);
     if(!filtered.length){
         container.innerHTML=hallFilter==='all'
-            ?'<p class="text-center text-[#8c7b66] text-sm italic py-8">Սրահ դատ. — ՝+ Սեղ.՝ ավ.</p>'
-            :'<p class="text-center text-[#8c7b66] text-sm italic py-8">Այս կողմից սեղ. չկան 🍃</p>';
+            ?'<p class="text-center text-[#8c7b66] text-sm italic py-8">Սրահը դատարկ է —> ՝+ Սեղ.՝ ավելացնել</p>'
+            :'<p class="text-center text-[#8c7b66] text-sm italic py-8">Այս կողմից սեղաններ չկան</p>';
         return;
     }
     container.innerHTML='';
@@ -551,26 +591,33 @@ function renderTables(tables, allMembers) {
         const sideBadge={'bride':'👰','groom':'🤵','mutual':'🤝'}[table.side||'mutual'];
         const card=document.createElement('div');
         card.className=`bg-white rounded-2xl border border-[#e8ddd0] overflow-hidden shadow-sm ${sideClass}`;
-        card.innerHTML=`
-            <div class="flex items-center gap-3 px-4 py-3" onclick="openTableDetail(${table.id})">
-                <div class="table-card-map ${table.category} flex-shrink-0 flex items-center justify-center"
-                    style="width:${table.category==='round'?'44px':'52px'};height:${table.category==='presidium'?'24px':'44px'};">
-                    <span style="font-size:9px;color:#8c7b66;font-weight:700;">${table.table_number}</span>
+        card.innerHTML = `
+    <div class="px-4 py-3 cursor-pointer" onclick="openTableDetail(${table.id})">
+        <div class="flex items-center gap-3">
+            <div class="table-card-map ${table.category} flex-shrink-0 flex items-center justify-center"
+                style="width:${table.category==='round'?'44px':'52px'};height:${table.category==='presidium'?'24px':'44px'};">
+                <span style="font-size:9px;color:#445E3F;font-weight:700;">${table.table_number}</span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-[#445E3F]">Սեղ. ${table.table_number} ${sideBadge}
+                    <span class="text-[11px] font-normal text-[#787878] ml-1">${WA.catLabel[table.category]||''}</span>
                 </div>
-                <div class="flex-1 min-w-0">
-                    <div class="text-sm font-semibold">Սեղ. ${table.table_number} ${sideBadge}
-                        <span class="text-[11px] font-normal text-[#8c7b66] ml-1">${WA.catLabel[table.category]||''}</span>
-                    </div>
-                    <div class="progress-bar mt-1.5"><div class="progress-fill ${pct===100?'bg-[#7a9e7e]':pct>70?'bg-[#c9a96e]':'bg-[#c4736a]/60'}" style="width:${pct}%"></div></div>
-                    <div class="text-[10px] text-[#8c7b66] mt-0.5">${seatedHere.length}/${table.capacity} · ${free} ազ.</div>
+                <div class="progress-bar mt-1.5"><div class="progress-fill" style="width:${pct}%"></div></div>
+                <div class="text-[10px] text-[#787878] mt-0.5">${seatedHere.length}/${table.capacity} · ${free} ազ.</div>
+            </div>
+            <div class="flex gap-1.5 flex-shrink-0">
+                <button onclick="event.stopPropagation();openEditCapacity(${table.id},${table.capacity})" class="w-8 h-8 rounded-lg border border-[#EEF2E4] bg-[#FFFFFF] flex items-center justify-center text-xs">✏️</button>
+                <button onclick="event.stopPropagation();confirmDeleteTable(${table.id},'${table.table_number}')" class="w-8 h-8 rounded-lg border border-[#EEF2E4] bg-[#FFFFFF] flex items-center justify-center text-xs">🗑️</button>
+            </div>
+        </div>
+        <div class="flex flex-wrap gap-1 mt-3 pt-2 border-t border-[#EEF2E4]">
+            ${seatedHere.map(m => `
+                <div class="w-6 h-6 flex items-center justify-center rounded-full bg-[#EEF2E4] border border-[#7D936C] text-[8px] font-bold text-[#445E3F]">
+                    ${(m.first_name || 'Ան').substring(0, 3)}
                 </div>
-                <div class="flex gap-1.5 flex-shrink-0">
-                    <button onclick="event.stopPropagation();openEditCapacity(${table.id},${table.capacity})"
-                        class="w-8 h-8 rounded-lg border border-[#e8ddd0] bg-[#f7f3ee] flex items-center justify-center text-xs">✏️</button>
-                    <button onclick="event.stopPropagation();confirmDeleteTable(${table.id},'${table.table_number}')"
-                        class="w-8 h-8 rounded-lg border border-[#e8ddd0] bg-[#f7f3ee] flex items-center justify-center text-xs">🗑️</button>
-                </div>
-            </div>`;
+            `).join('')}
+        </div>
+    </div>`;
         container.appendChild(card);
     });
 }
@@ -642,10 +689,10 @@ async function openTableDetail(tableId) {
         row.className='flex items-center gap-3 bg-[#f7f3ee] rounded-xl px-4 py-2.5';
         row.innerHTML=`
             <span class="text-xs font-bold text-[#c9a96e] w-5">${m.seat_index!=null?m.seat_index+1:'-'}</span>
-            <span class="flex-1 text-sm">👤 ${m.first_name||'Anan.'}</span>
+            <span class="flex-1 text-sm">👤 ${m.first_name||'անանուն'}</span>
             <div class="flex gap-1">
                 <button onclick="openRename(${m.id},'${(m.first_name||'').replace(/'/g,"\\'")}')" class="w-8 h-8 rounded-lg border border-[#e8ddd0] bg-white flex items-center justify-center text-xs">✏️</button>
-                <button onclick="confirmUnseat(${m.id},'${(m.first_name||'Anan.').replace(/'/g,"\\'")}')" class="w-8 h-8 rounded-lg border border-[#e8ddd0] bg-white text-[#c4736a] flex items-center justify-center text-xs">✕</button>
+                <button onclick="confirmUnseat(${m.id},'${(m.first_name||'անանուն').replace(/'/g,"\\'")}')" class="w-8 h-8 rounded-lg border border-[#e8ddd0] bg-white text-[#c4736a] flex items-center justify-center text-xs">✕</button>
             </div>`;
         body.appendChild(row);
     });
@@ -655,7 +702,7 @@ async function openTableDetail(tableId) {
         lbl.innerText=`Ազ. (${free})`;
         body.appendChild(lbl);
         const addBtn=document.createElement('button');
-        addBtn.className='w-full py-3 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold';
+        addBtn.className='w-full py-3 bg-[#445E3F] text-[#e8d5b0] rounded-xl text-sm font-semibold';
         addBtn.innerText='+ Ավ. հյուր';
         addBtn.onclick=()=>{closeModal('tableDetailModal');openGuestPickerForTable(tableId);};
         body.appendChild(addBtn);
@@ -679,7 +726,7 @@ function openGuestPickerForTable(tableId) {
         um.forEach(m=>{
             const btn=document.createElement('button');
             btn.className='w-full text-left px-4 py-3 rounded-xl border border-[#e8ddd0] bg-white text-sm font-medium flex justify-between items-center mb-1';
-            btn.innerHTML=`<span>👤 ${m.first_name||'Anan.'}</span><span class="text-[#c9a96e] font-bold text-lg">+</span>`;
+            btn.innerHTML=`<span>👤 ${m.first_name||'Անանուն.'}</span><span class="text-[#c9a96e] font-bold text-lg">+</span>`;
             btn.onclick=async()=>{try{await WA.seatOnTable(m.id,tableId);closeModal('guestPickerModal');await reloadAll();}catch(e){alert(e.message);}};
             list.appendChild(btn);
         });
@@ -703,17 +750,21 @@ function openEditCapacity(tableId,current) {
     };
 }
 
-// ── UNSEATED ──
 function setUnseatedFilter(f) {
-    unseatedFilter=f;
-    document.querySelectorAll('.uf-pill').forEach(b=>{b.className='uf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]';});
-    document.getElementById(`uf-${f}`).className='uf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#1a1612] text-[#e8d5b0]';
+    unseatedFilter = f;
+    // Բոլորին դարձնում ենք "ոչ ակտիվ"
+    document.querySelectorAll('.uf-pill').forEach(b => {
+        b.className = 'uf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]';
+    });
+    // Ընտրվածին տալիս ենք կանաչ գույնը
+    document.getElementById(`uf-${f}`).className = 'uf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#445E3F] text-[#e8d5b0]';
+
     renderUnseated();
 }
 function renderUnseated() {
     const container=document.getElementById('unseatedList');
     const totalM=WA.allGuests.reduce((s,g)=>s+g.total_count,0);
-    document.getElementById('unseatedSummary').innerText=`${totalM-WA.unseatedMembers.length}/${totalM} νστ. · ${WA.unseatedMembers.length} Չ.Ν.`;
+    document.getElementById('unseatedSummary').innerText=`${totalM-WA.unseatedMembers.length}/${totalM} նստ. · ${WA.unseatedMembers.length} չ.ն.`;
     const unseatedIds=new Set(WA.unseatedMembers.map(m=>m.id));
     const filtered=WA.allGuests.filter(g=>unseatedFilter==='all'||g.side===unseatedFilter);
     container.innerHTML='';
@@ -726,7 +777,7 @@ function renderUnseated() {
         const uc=guestUnseated.length;
         const total=guest.members.length;
         const pillCls=uc===0?'bg-[#7a9e7e]/10 text-[#7a9e7e]':uc===total?'bg-[#c4736a]/10 text-[#c4736a]':'bg-[#c9a96e]/15 text-[#8a6c30]';
-        const pillText=uc===0?'✓ Բոլ.':uc===total?`${uc} Չ.Ν.`:`${uc}/${total}`;
+        const pillText=uc===0?'✓ Բոլ.':uc===total?`${uc} Չ.Ն.`:`${uc}/${total}`;
         const card=document.createElement('div');
         card.className='bg-white rounded-2xl border border-[#e8ddd0] overflow-hidden shadow-sm';
         card.innerHTML=`
@@ -734,15 +785,15 @@ function renderUnseated() {
                 <span class="text-sm font-semibold flex-1 truncate">${guest.display_name}</span>
                 <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold ${pillCls}">${pillText}</span>
                 <button onclick="openSeatCountSheet(${guest.id})" ${uc===0?'disabled':''}
-                    class="flex-shrink-0 text-xs font-semibold px-3 py-2 rounded-lg ${uc===0?'opacity-30 bg-[#f7f3ee] text-[#8c7b66]':'bg-[#1a1612] text-[#e8d5b0]'}">
-                    Νστ. ➔
+                    class="flex-shrink-0 text-xs font-semibold px-3 py-2 rounded-lg ${uc===0?'opacity-30 bg-[#f7f3ee] text-[#8c7b66]':'bg-[#445E3F] text-[#e8d5b0]'}">
+                    Նստ. ➔
                 </button>
             </div>
-            ${guestUnseated.length>0?`<div class="border-t border-[#f7f3ee]">${guestUnseated.map(m=>`<div class="flex items-center gap-2 px-6 py-2 text-xs text-[#5c4f3d] border-b border-[#f7f3ee] last:border-0"><span class="flex-1">${m.first_name||'Anan.'}</span><span class="text-[9px] text-[#c8bfb2]">Չ.Ν.</span></div>`).join('')}</div>`:''}`
+            ${guestUnseated.length>0?`<div class="border-t border-[#f7f3ee]">${guestUnseated.map(m=>`<div class="flex items-center gap-2 px-6 py-2 text-xs text-[#5c4f3d] border-b border-[#f7f3ee] last:border-0"><span class="flex-1">${m.first_name||'անանուն'}</span><span class="text-[9px] text-[#c8bfb2]">Չ.Ն.</span></div>`).join('')}</div>`:''}`
         frag.appendChild(card);
     });
     container.appendChild(frag);
-    if(!any)container.innerHTML='<p class="text-center text-[#8c7b66] text-sm italic py-8">Բոլ. νστ. 🎉</p>';
+    if(!any)container.innerHTML='<p class="text-center text-[#8c7b66] text-sm italic py-8">Բոլ. նստ. 🎉</p>';
 }
 
 function openSeatCountSheet(guestId) {
@@ -750,7 +801,7 @@ function openSeatCountSheet(guestId) {
     if(!guest)return;
     const unseatedIds=new Set(WA.unseatedMembers.map(m=>m.id));
     const um=guest.members.filter(m=>unseatedIds.has(m.id));
-    if(!um.length){alert('Բոլ. νστ.');return;}
+    if(!um.length){alert('Բոլ. նստ.');return;}
     pendingSeatGuest={guestId,display_name:guest.display_name,unseatedMembers:um};
     pendingSeatCount=um.length;
     const inp=document.getElementById('m_seatCount');
@@ -773,7 +824,7 @@ async function openTablePickerForGroup(guestInfo,count) {
     document.getElementById('tablePickerTitle').innerText=`${count} հ. համ.`;
     const list=document.getElementById('tablePickerList');
     list.innerHTML='';
-    if(!tables.length){list.innerHTML='<p class="text-center text-[#8c7b66] text-sm italic py-6">Սεղ. չκան</p>';openModal('tablePickerModal');return;}
+    if(!tables.length){list.innerHTML='<p class="text-center text-[#8c7b66] text-sm italic py-6">Սեղ. չկան</p>';openModal('tablePickerModal');return;}
     tables.forEach(table=>{
         const seated=allMembers.filter(m=>m.table_id===table.id).length;
         const avail=table.capacity-seated;
@@ -785,7 +836,7 @@ async function openTablePickerForGroup(guestInfo,count) {
         btn.className=`w-full text-left px-4 py-3 rounded-xl border mb-1 transition-all ${canFit?'border-[#e8ddd0] bg-white':'border-[#f0eae2] bg-[#faf8f5] opacity-40'}`;
         btn.innerHTML=`
             <div class="flex justify-between items-center mb-1">
-                <span class="text-sm font-semibold">Սεղ. ${table.table_number} ${sideBadge}</span>
+                <span class="text-sm font-semibold">Սեղ. ${table.table_number} ${sideBadge}</span>
                 <span class="text-[10px] text-[#8c7b66]">${WA.catLabel[table.category]||''}</span>
             </div>
             <div class="flex items-center gap-2">
@@ -837,7 +888,7 @@ async function exportToPDF() {
     tables.forEach(table=>{
         const here=allMembers.filter(m=>m.table_id===table.id).sort((a,b)=>(a.seat_index||0)-(b.seat_index||0));
         if(!here.length){rows.push([`Sg.${table.table_number}`,"Datark",""]);}
-        else here.forEach((m,i)=>{rows.push([i===0?`Seghan ${table.table_number}`:"",`Ator ${m.seat_index!=null?m.seat_index+1:i+1}`,m.first_name||"Ananun"]);});
+        else here.forEach((m,i)=>{rows.push([i===0?`Seghan ${table.table_number}`:"",`Ator ${m.seat_index!=null?m.seat_index+1:i+1}`,m.first_name||"անանուն"]);});
         rows.push(["","",""]);
     });
     doc.autoTable({startY:22,head:[['Seghan','Ator','Anun']],body:rows,theme:'striped',
