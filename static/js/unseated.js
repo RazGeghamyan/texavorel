@@ -1,18 +1,17 @@
 /**
  * unseated.js — Unseated members panel: render + mutation handlers.
  *
- * RULE: This file NEVER calls any API.get*() endpoint directly.
- *       It reads State.allGuests + State.unseatedMembers and calls
- *       updateAppState() after mutations.
+ * RULE: Zero GET requests after mutations.
+ * Every write uses the server response to patchState() directly.
  *
- * Depends on: api.js, state.js (State + updateAppState), modals.js, hall.js (seatMemberOnTable)
+ * Depends on: api.js, state.js (State + patchState), modals.js, hall.js (seatMemberOnTable)
  */
 
 // ── Pure UI renderer ──────────────────────────────────────────────────────────
 
 /**
  * renderUnseatedPanel()
- * Called by updateAppState() after State has been refreshed.
+ * Called by patchState() after State has been refreshed.
  * Reads State.allGuests + State.unseatedMembers — does not fetch anything.
  */
 function renderUnseatedPanel() {
@@ -120,14 +119,16 @@ function filterUnseatedMembers(side) {
             ? 'flex-1 py-1.5 text-[11px] font-semibold rounded-lg transition-all bg-[#1a1612] text-[#e8d5b0] shadow-sm'
             : 'flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] hover:bg-[#f7f3ee] transition-all';
     });
-    renderUnseatedPanel(); // re-render from State — no fetch
+    renderUnseatedPanel();
 }
 
-// ── Mutations (write → updateAppState) ───────────────────────────────────────
+// ── Mutations (write → patchState) ───────────────────────────────────────────
 
 async function unseatMemberAction(memberId) {
-    await API.unseatMember(memberId);
-    await updateAppState();
+    const res = await API.unseatMember(memberId);
+    if (res.ok) {
+        patchState({ memberUnseated: { memberId } });
+    }
 }
 
 // ── Seat Count Modal ──────────────────────────────────────────────────────────
@@ -224,12 +225,10 @@ async function seatGroupOnTable(guestInfo, count, tableId) {
     for (const member of guestInfo.unseatedMembers.slice(0, count)) {
         const ok = await seatMemberOnTable(member.id, tableId);
         if (!ok) break;
-        // Optimistically update State so findNextFreeSeatFromState stays accurate
-        // for subsequent members in this loop — no refetch needed mid-loop.
         const placed = State.allGuests.flatMap(g => g.members).find(m => m.id === member.id);
         if (placed) placed.table_id = tableId;
     }
-    await updateAppState();
+    // ❌ await updateAppState() հեռացված է, քանի որ լուպի ներսի ֆունկցիաներն արդեն անում են պետքական պաչերը
 }
 
 // ── Guest Picker (from Table Sheet "free seat") ───────────────────────────────
@@ -262,7 +261,7 @@ function openGuestPicker(tableId) {
             btn.addEventListener('click', async () => {
                 await seatMemberOnTable(m.id, tableId);
                 closeModal('guestPickerModal');
-                await updateAppState();
+                // ❌ await updateAppState() հեռացված է
             });
             list.appendChild(btn);
         });

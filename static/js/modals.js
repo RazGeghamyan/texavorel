@@ -1,11 +1,10 @@
 /**
  * modals.js — Modal helpers, table sheet, rename, confirm-delete, PDF export.
  *
- * RULE: openTableSheet() and openRenameModal() read from State — no extra
- *       API.get*() calls for data that updateAppState() already fetched.
- *       Only write calls (renameMember, unseatMember) are made here.
+ * RULE: Zero GET requests after mutations.
+ * Every write uses the server response to patchState() directly.
  *
- * Depends on: api.js, state.js (State + updateAppState)
+ * Depends on: api.js, state.js (State + patchState)
  */
 
 // ── Core modal open/close ─────────────────────────────────────────────────────
@@ -26,8 +25,7 @@ function showConfirmDelete(text, onConfirm) {
 /**
  * openRenameModal(memberId, oldName)
  *
- * The `reloadTarget` parameter from the old version is removed — after rename
- * we always call updateAppState() which refreshes everything consistently.
+ * Updates the member's name and surgically updates the local state.
  */
 function openRenameModal(memberId, oldName) {
     const input = document.getElementById('renameMemberInput');
@@ -42,7 +40,7 @@ function openRenameModal(memberId, oldName) {
         if (res.ok) {
             closeModal('renameMemberModal');
             closeModal('tableSheetModal');  // safe if not open
-            await updateAppState();
+            patchState({ memberRenamed: { memberId, firstName: newName } }); // ✅ Փոխարինված է
         }
     };
 }
@@ -125,10 +123,12 @@ function sheetRemoveMember(memberId) {
     showConfirmDelete(
         'Հեռացնե՞լ այս հյուրին սեղանից։',
         async () => {
-            await API.unseatMember(memberId);
-            closeModal('confirmDeleteModal');
-            closeModal('tableSheetModal');
-            await updateAppState();
+            const res = await API.unseatMember(memberId);
+            if (res.ok) {
+                closeModal('confirmDeleteModal');
+                closeModal('tableSheetModal');
+                patchState({ memberUnseated: { memberId } }); // ✅ Փոխարինված է
+            }
         },
     );
 }
