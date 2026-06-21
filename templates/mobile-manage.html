@@ -89,7 +89,7 @@ header { background-color: #445E3F !important; }
 /* Մուգ գույն ունեցող կոճակներ */
 .bg-[#1a1612] { background-color: #445E3F !important; }
 
-/* Ակտիվ կոճակների տեքստ (օրինակ՝ "Բոլ." կոճակը) */
+/* Ակտիվ կոճակների տեքստ (օրինակ՝ "Բոլորը" կոճակը) */
 .bg-[#1a1612] { color: #FFFFFF !important; }
 
 /* Ընդհանուր էջի ֆոն */
@@ -121,12 +121,12 @@ body { background-color: #EEF2E4 !important; }
             <button onclick="openAddGuestSheet()" class="bg-[#445E3F] text-[#e8d5b0] text-xs font-semibold px-3 py-1.5 rounded-lg">＋ Հյուր</button>
         </div>
         <div class="flex gap-2 px-3 py-2 bg-[#fefcf9] border-b border-[#e8ddd0] flex-shrink-0">
-            <button onclick="setGuestFilter('all')"   id="gf-all"   class="gf-pill active flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#445E3F] text-[#e8d5b0]">Բոլ.</button>
+            <button onclick="setGuestFilter('all')"   id="gf-all"   class="gf-pill active flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#445E3F] text-[#e8d5b0]">Բոլորը</button>
             <button onclick="setGuestFilter('bride')" id="gf-bride" class="gf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]">👰</button>
             <button onclick="setGuestFilter('groom')" id="gf-groom" class="gf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]">🤵</button>
         </div>
         <div id="mergeBar" class="hidden px-3 py-2 bg-[#c4736a]/10 border-b border-[#c4736a]/20 flex-shrink-0">
-            <button onclick="mergeSelected()" class="w-full py-2 bg-[#c4736a] text-white rounded-lg text-sm font-semibold">🧩 Միավ.</button>
+            <button onclick="mergeSelected()" class="w-full py-2 bg-[#445E3F] text-white rounded-lg text-sm font-semibold">Միավորել</button>
         </div>
         <div id="guestList" class="flex-1 overflow-y-auto px-3 py-2 space-y-2">
             <p class="text-center text-[#8c7b66] text-sm italic py-8">Բեռնվում է...</p>
@@ -137,11 +137,11 @@ body { background-color: #EEF2E4 !important; }
     <div id="tab-hall" class="tab-panel">
         <div class="bg-[#fefcf9] border-b border-[#e8ddd0] px-4 py-2 flex items-center gap-2 flex-shrink-0">
             <div id="hallSummary" class="text-[11px] text-[#8c7b66] flex-1"></div>
-            <button onclick="openAddTableSheet()" class="bg-[#445E3F] text-[#e8d5b0] text-xs font-semibold px-3 py-1.5 rounded-lg">＋ Սեղ.</button>
+            <button onclick="openAddTableSheet()" class="bg-[#445E3F] text-[#e8d5b0] text-xs font-semibold px-3 py-1.5 rounded-lg">＋ Սեղան</button>
         </div>
         <!-- Hall side filter -->
         <div class="flex gap-2 px-3 py-2 bg-[#fefcf9] border-b border-[#e8ddd0] flex-shrink-0">
-            <button onclick="setHallFilter('all')" id="hf-all" class="hf-pill active flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#445E3F] text-[#e8d5b0]">Բոլ.</button>
+            <button onclick="setHallFilter('all')" id="hf-all" class="hf-pill active flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#445E3F] text-[#e8d5b0]">Բոլորը</button>
             <button onclick="setHallFilter('bride')"  id="hf-bride"  class="hf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]">👰</button>
             <button onclick="setHallFilter('groom')"  id="hf-groom"  class="hf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]">🤵</button>
             <button onclick="setHallFilter('mutual')" id="hf-mutual" class="hf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]">🤝</button>
@@ -157,7 +157,7 @@ body { background-color: #EEF2E4 !important; }
             <div id="unseatedSummary" class="text-[11px] text-[#8c7b66]">Բեռնվում...</div>
         </div>
         <div class="flex gap-2 px-3 py-2 bg-[#fefcf9] border-b border-[#e8ddd0] flex-shrink-0">
-            <button onclick="setUnseatedFilter('all')"   id="uf-all"   class="uf-pill active flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#445E3F] text-[#e8d5b0]">Բոլ.</button>
+            <button onclick="setUnseatedFilter('all')"   id="uf-all"   class="uf-pill active flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#445E3F] text-[#e8d5b0]">Բոլորը</button>
             <button onclick="setUnseatedFilter('bride')" id="uf-bride" class="uf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]">👰</button>
             <button onclick="setUnseatedFilter('groom')" id="uf-groom" class="uf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] bg-white border border-[#e8ddd0]">🤵</button>
         </div>
@@ -179,7 +179,7 @@ body { background-color: #EEF2E4 !important; }
     </button>
     <button onclick="switchTab('unseated')" id="nav-unseated" class="bottom-nav-btn flex-1 flex flex-col items-center pt-2 pb-1">
         <div class="nav-icon-wrap w-10 h-8 rounded-xl flex items-center justify-center mb-0.5"><span class="nav-icon text-xl">⏳</span></div>
-        <span class="nav-label text-[10px] text-[#8c7b66]">Չնստ.</span>
+        <span class="nav-label text-[10px] text-[#8c7b66]">Չնստեցված</span>
     </button>
 </nav>
 
@@ -189,16 +189,16 @@ body { background-color: #EEF2E4 !important; }
 <div class="modal-overlay" id="addGuestModal" onclick="closeModal('addGuestModal')">
     <div class="modal-sheet" onclick="event.stopPropagation()">
         <div class="modal-handle"></div>
-        <div class="px-5 pt-4 pb-2 border-b border-[#e8ddd0]"><div class="font-cormorant text-xl font-bold">Ավ. հյուր</div></div>
+        <div class="px-5 pt-4 pb-2 border-b border-[#e8ddd0]"><div class="font-cormorant text-xl font-bold">Ավելացնել հյուր</div></div>
         <div class="p-5 space-y-4">
             <div>
                 <label class="block text-[11px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-1.5">Անուն</label>
-                <input id="m_guestName" type="text" placeholder="Օր.՝ Մարգ. ընտ."
+                <input id="m_guestName" type="text" placeholder="Օր.՝ Մարգարյանների ընտանիք"
                     class="w-full px-4 py-3 rounded-xl border border-[#e8ddd0] bg-white text-sm text-[#1a1612]" style="font-size:16px;">
             </div>
             <div class="flex gap-3">
                 <div class="flex-1">
-                    <label class="block text-[11px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-1.5">Հոգ.</label>
+                    <label class="block text-[11px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-1.5">Քանակ</label>
                     <div class="flex items-center gap-2 bg-[#f7f3ee] rounded-xl border border-[#e8ddd0] px-3 py-2.5">
                         <button onclick="changeM('m_guestCount',-1)" class="w-8 h-8 rounded-full border border-[#e8ddd0] bg-white flex items-center justify-center text-lg">−</button>
                         <span id="m_guestCountDisplay" class="font-cormorant text-2xl font-bold flex-1 text-center">1</span>
@@ -214,7 +214,7 @@ body { background-color: #EEF2E4 !important; }
                     </select>
                 </div>
             </div>
-            <button onclick="submitAddGuest()" class="w-full py-3.5 bg-[#445E3F] text-[#e8d5b0] rounded-xl text-sm font-semibold">＋ Ավ.</button>
+            <button onclick="submitAddGuest()" class="w-full py-3.5 bg-[#445E3F] text-[#e8d5b0] rounded-xl text-sm font-semibold">Ավելացնել</button>
         </div>
     </div>
 </div>
@@ -223,36 +223,36 @@ body { background-color: #EEF2E4 !important; }
 <div class="modal-overlay" id="addTableModal" onclick="closeModal('addTableModal')">
     <div class="modal-sheet" onclick="event.stopPropagation()">
         <div class="modal-handle"></div>
-        <div class="px-5 pt-4 pb-2 border-b border-[#e8ddd0]"><div class="font-cormorant text-xl font-bold">Ավ. սեղան</div></div>
+        <div class="px-5 pt-4 pb-2 border-b border-[#e8ddd0]"><div class="font-cormorant text-xl font-bold">Ավելացնել սեղան</div></div>
         <div class="p-5 space-y-4">
             <!-- Category -->
             <div>
                 <label class="block text-[11px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-2">Տեսակ</label>
                 <div class="grid grid-cols-2 gap-2" id="catPicker">
                     <button onclick="selectCat('round')"            class="cat-btn rounded-xl border-2 border-[#e8ddd0] p-3 text-sm font-medium text-[#5c4f3d] flex items-center gap-2">⭕ Կլոր</button>
-                    <button onclick="selectCat('rectangle')"        class="cat-btn rounded-xl border-2 border-[#e8ddd0] p-3 text-sm font-medium text-[#5c4f3d] flex items-center gap-2">▬ Ուղղ.</button>
-                    <button onclick="selectCat('double_rectangle')" class="cat-btn rounded-xl border-2 border-[#e8ddd0] p-3 text-sm font-medium text-[#5c4f3d] flex items-center gap-2">▬▬ Կրկ.</button>
-                    <button onclick="selectCat('presidium')"        class="cat-btn rounded-xl border-2 border-[#e8ddd0] p-3 text-sm font-semibold text-[#8a6c30] flex items-center gap-2">👑 Պրեզ.</button>
+                    <button onclick="selectCat('rectangle')"        class="cat-btn rounded-xl border-2 border-[#e8ddd0] p-3 text-sm font-medium text-[#5c4f3d] flex items-center gap-2">▬ Ուղղանկյուն</button>
+                    <button onclick="selectCat('double_rectangle')" class="cat-btn rounded-xl border-2 border-[#e8ddd0] p-3 text-sm font-medium text-[#5c4f3d] flex items-center gap-2">▬▬ Կրկնակի</button>
+                    <button onclick="selectCat('presidium')"        class="cat-btn rounded-xl border-2 border-[#e8ddd0] p-3 text-sm font-semibold text-[#8a6c30] flex items-center gap-2">👑 Պրեզիդիում</button>
                 </div>
             </div>
             <!-- Side selection -->
             <div>
                 <label class="block text-[11px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-2">Կողմ</label>
                 <div class="flex gap-2">
-                    <button onclick="selectTableSide('bride')"  id="mts-bride"  class="side-btn flex-1 py-2.5 rounded-xl border-2 border-[#e8ddd0] text-sm font-semibold text-[#5c4f3d]">👰 Հ.</button>
-                    <button onclick="selectTableSide('groom')"  id="mts-groom"  class="side-btn flex-1 py-2.5 rounded-xl border-2 border-[#e8ddd0] text-sm font-semibold text-[#5c4f3d]">🤵 Փ.</button>
+                    <button onclick="selectTableSide('bride')"  id="mts-bride"  class="side-btn flex-1 py-2.5 rounded-xl border-2 border-[#e8ddd0] text-sm font-semibold text-[#5c4f3d]">👰 Հարս</button>
+                    <button onclick="selectTableSide('groom')"  id="mts-groom"  class="side-btn flex-1 py-2.5 rounded-xl border-2 border-[#e8ddd0] text-sm font-semibold text-[#5c4f3d]">🤵 Փեսա</button>
                     <button onclick="selectTableSide('mutual')" id="mts-mutual" class="side-btn flex-1 py-2.5 rounded-xl border-2 border-[#c9a96e] text-sm font-semibold active-mutual">🤝</button>
                 </div>
             </div>
             <!-- Number -->
             <div>
-                <label class="block text-[11px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-1.5">Համ.</label>
+                <label class="block text-[11px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-1.5">Համար</label>
                 <input id="m_tableNumber" type="text" placeholder="Օր.՝ 1, A, VIP..."
                     class="w-full px-4 py-3 rounded-xl border border-[#e8ddd0] bg-white text-sm" style="font-size:16px;">
             </div>
             <!-- Capacity -->
             <div>
-                <label class="block text-[11px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-1.5">Աթ.</label>
+                <label class="block text-[11px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-1.5">Աթոռ</label>
                 <div class="flex items-center gap-3 bg-[#f7f3ee] rounded-xl border border-[#e8ddd0] px-4 py-3">
                     <button onclick="changeM('m_tableCapacity',-1)" class="w-10 h-10 rounded-full border border-[#e8ddd0] bg-white flex items-center justify-center text-xl">−</button>
                     <span id="m_tableCapacityDisplay" class="font-cormorant text-4xl font-bold flex-1 text-center text-[#1a1612]">10</span>
@@ -260,7 +260,7 @@ body { background-color: #EEF2E4 !important; }
                 </div>
                 <input type="hidden" id="m_tableCapacity" value="10">
             </div>
-            <button onclick="submitAddTable()" class="w-full py-3.5 bg-[#445E3F] text-[#e8d5b0] rounded-xl text-sm font-semibold">Ստ. ✓</button>
+            <button onclick="submitAddTable()" class="w-full py-3.5 bg-[#445E3F] text-[#e8d5b0] rounded-xl text-sm font-semibold">Ավելացնել</button>
         </div>
     </div>
 </div>
@@ -281,7 +281,7 @@ body { background-color: #EEF2E4 !important; }
 <div class="modal-overlay" id="tablePickerModal" onclick="closeModal('tablePickerModal')">
     <div class="modal-sheet" onclick="event.stopPropagation()">
         <div class="modal-handle"></div>
-        <div class="px-5 pt-4 pb-3 border-b border-[#e8ddd0]"><div id="tablePickerTitle" class="font-cormorant text-xl font-bold">Ընտ. սեղ.</div></div>
+        <div class="px-5 pt-4 pb-3 border-b border-[#e8ddd0]"><div id="tablePickerTitle" class="font-cormorant text-xl font-bold">Ընտրել սեղան</div></div>
         <div id="tablePickerList" class="p-4 space-y-2 pb-8 overflow-y-auto" style="max-height:60vh;"></div>
     </div>
 </div>
@@ -290,7 +290,7 @@ body { background-color: #EEF2E4 !important; }
 <div class="modal-overlay" id="guestPickerModal" onclick="closeModal('guestPickerModal')">
     <div class="modal-sheet" onclick="event.stopPropagation()">
         <div class="modal-handle"></div>
-        <div class="px-5 pt-4 pb-3 border-b border-[#e8ddd0]"><div class="font-cormorant text-xl font-bold">Ընտ. հյուր</div></div>
+        <div class="px-5 pt-4 pb-3 border-b border-[#e8ddd0]"><div class="font-cormorant text-xl font-bold">Ընտրել հյուր</div></div>
         <div id="guestPickerList" class="p-4 space-y-2 pb-8 overflow-y-auto" style="max-height:60vh;"></div>
     </div>
 </div>
@@ -302,7 +302,18 @@ body { background-color: #EEF2E4 !important; }
         <div class="px-5 pt-4 pb-3 border-b border-[#e8ddd0]"><div class="font-cormorant text-xl font-bold">Անուն</div></div>
         <div class="p-5 space-y-4">
             <input id="renameInput" type="text" class="w-full px-4 py-3 rounded-xl border border-[#e8ddd0] bg-white text-sm" style="font-size:16px;">
-            <button id="renameConfirmBtn" class="w-full py-3.5 bg-[#445E3F] text-[#e8d5b0] rounded-xl text-sm font-semibold">Պահ. ✓</button>
+            <button id="renameConfirmBtn" class="w-full py-3.5 bg-[#445E3F] text-[#e8d5b0] rounded-xl text-sm font-semibold">Պահպանել ✓</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="mergeNameModal" onclick="closeModal('mergeNameModal')">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+        <div class="modal-handle"></div>
+        <div class="px-5 pt-4 pb-3 border-b border-[#e8ddd0]"><div class="font-cormorant text-xl font-bold">Միավորել հյուրերին</div></div>
+        <div class="p-5 space-y-4">
+            <input id="mergeNameInput" type="text" placeholder="Նոր ընտանիքի անունը..." class="w-full px-4 py-3 rounded-xl border border-[#e8ddd0] bg-white text-sm" style="font-size:16px;">
+            <button id="mergeConfirmBtn" class="w-full py-3.5 bg-[#445E3F] text-[#e8d5b0] rounded-xl text-sm font-semibold">Միավորել ✓</button>
         </div>
     </div>
 </div>
@@ -311,7 +322,7 @@ body { background-color: #EEF2E4 !important; }
 <div class="modal-overlay" id="editCapacityModal" onclick="closeModal('editCapacityModal')">
     <div class="modal-sheet" onclick="event.stopPropagation()">
         <div class="modal-handle"></div>
-        <div class="px-5 pt-4 pb-3 border-b border-[#e8ddd0]"><div class="font-cormorant text-xl font-bold">Աթ. Քան.</div></div>
+        <div class="px-5 pt-4 pb-3 border-b border-[#e8ddd0]"><div class="font-cormorant text-xl font-bold">Աթոռների քանակ</div></div>
         <div class="p-5 space-y-4">
             <div class="flex items-center gap-4 bg-[#f7f3ee] rounded-xl border border-[#e8ddd0] px-5 py-4">
                 <button onclick="changeM('m_editCapacity',-1)" class="w-12 h-12 rounded-full border border-[#e8ddd0] bg-white flex items-center justify-center text-2xl">−</button>
@@ -319,7 +330,7 @@ body { background-color: #EEF2E4 !important; }
                 <button onclick="changeM('m_editCapacity',1)"  class="w-12 h-12 rounded-full border border-[#e8ddd0] bg-white flex items-center justify-center text-2xl">+</button>
             </div>
             <input type="hidden" id="m_editCapacity" value="12">
-            <button id="editCapacityConfirmBtn" class="w-full py-3.5 bg-[#445E3F] text-[#e8d5b0] rounded-xl text-sm font-semibold">Պահ. ✓</button>
+            <button id="editCapacityConfirmBtn" class="w-full py-3.5 bg-[#445E3F] text-[#e8d5b0] rounded-xl text-sm font-semibold">Պահպանել ✓</button>
         </div>
     </div>
 </div>
@@ -330,11 +341,11 @@ body { background-color: #EEF2E4 !important; }
         <div class="modal-handle"></div>
         <div class="p-6 text-center">
             <div class="text-4xl mb-3">🗑️</div>
-            <div class="font-cormorant text-xl font-bold mb-2">Հաստ.?</div>
+            <div class="font-cormorant text-xl font-bold mb-2">Հաստատ</div>
             <p id="deleteConfirmText" class="text-sm text-[#8c7b66] mb-6">Անդ. է։</p>
             <div class="flex gap-3">
-                <button onclick="closeModal('confirmDeleteModal')" class="flex-1 py-3 rounded-xl border border-[#e8ddd0] text-sm font-semibold text-[#5c4f3d] bg-white">Չեղ.</button>
-                <button id="deleteConfirmBtn" class="flex-1 py-3 rounded-xl bg-[#c4736a] text-white text-sm font-semibold">Ջնջ.</button>
+                <button onclick="closeModal('confirmDeleteModal')" class="flex-1 py-3 rounded-xl border border-[#e8ddd0] text-sm font-semibold text-[#5c4f3d] bg-white">Չեղարկել</button>
+                <button id="deleteConfirmBtn" class="flex-1 py-3 rounded-xl bg-[#c4736a] text-white text-sm font-semibold">Ջնջել</button>
             </div>
         </div>
     </div>
@@ -356,19 +367,20 @@ body { background-color: #EEF2E4 !important; }
             </div>
             <input type="hidden" id="m_seatCount" value="1">
             <div id="seatCountMaxLabel" class="text-[11px] text-[#8c7b66] text-center"></div>
-            <button onclick="confirmSeatCount()" class="w-full py-3.5 bg-[#445E3F] text-[#e8d5b0] rounded-xl text-sm font-semibold">Ընտ. Սեղ. ➔</button>
+            <button onclick="confirmSeatCount()" class="w-full py-3.5 bg-[#445E3F] text-[#e8d5b0] rounded-xl text-sm font-semibold">Ընտրել Սեղան ➔</button>
         </div>
     </div>
 </div>
 
 <script>
+
 const weddingId    = {{ wedding_id }};
 const weddingToken = "{{ wedding_token }}";
 
 const WA = {
     weddingId, weddingToken,
     allGuests: [], unseatedMembers: [],
-    catLabel: { round:'Կլ.', rectangle:'Ուղ.', double_rectangle:'Կրկ.', presidium:'Պրեզ.' },
+    catLabel: { round:'Կլոր', rectangle:'Ուղղանկյուն', double_rectangle:'Կրկնակի', presidium:'Պրեզիդիում' },
     defaultCapacity: { round:12, rectangle:8, double_rectangle:16, presidium:6 },
     async fetch(url, opts={}) {
         opts.headers = { ...(opts.headers||{}), "X-Wedding-Token": weddingToken };
@@ -388,7 +400,7 @@ WA.api = {
     addTable: async (num,cat,cap,side) => (await WA.fetch(`/api/v1/tables/?wedding_id=${weddingId}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({wedding_id:weddingId,table_number:num,category:cat,capacity:cap,side:side||'mutual'})})).ok,
     deleteTable: async id => (await WA.fetch(`/api/v1/tables/${id}?wedding_id=${weddingId}`,{method:'DELETE'})).ok,
     updateCapacity: async (id,cap) => { const r=await WA.fetch(`/api/v1/tables/${id}/capacity?wedding_id=${weddingId}&capacity=${cap}`,{method:'PUT'}); if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.detail||'Սխ.');} return r.json(); },
-    seatMember: async (mid,tid,sidx) => { let u=`/api/v1/guest-members/${mid}/seat?wedding_id=${weddingId}`; if(tid!=null)u+=`&table_id=${tid}`; if(sidx!=null)u+=`&seat_index=${sidx}`; const r=await WA.fetch(u,{method:'PUT'}); if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.detail||'Ազ.չկա');} return r.json(); },
+    seatMember: async (mid,tid,sidx) => { let u=`/api/v1/guest-members/${mid}/seat?wedding_id=${weddingId}`; if(tid!=null)u+=`&table_id=${tid}`; if(sidx!=null)u+=`&seat_index=${sidx}`; const r=await WA.fetch(u,{method:'PUT'}); if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.detail||'Ազատ տեղ չկա');} return r.json(); },
     unseatMember: async mid => WA.api.seatMember(mid,null,null),
     renameMember: async (mid,name) => (await WA.fetch(`/api/v1/guest-members/${mid}/name?wedding_id=${weddingId}&first_name=${encodeURIComponent(name)}`,{method:'PUT'})).ok,
 };
@@ -402,7 +414,7 @@ WA.findNextFreeSeat = async function(tableId) {
 };
 WA.seatOnTable = async function(memberId,tableId) {
     const idx = await WA.findNextFreeSeat(tableId);
-    if(idx===null) throw new Error('Ազ. տեղ չկա');
+    if(idx===null) throw new Error('Ազատ տեղ չկա');
     return WA.api.seatMember(memberId,tableId,idx);
 };
 
@@ -438,7 +450,7 @@ async function reloadTables() {
     renderTables(tables, allMembers);
     const seated = allMembers.filter(m=>m.table_id!=null).length;
     const totalSeats = tables.reduce((s,t)=>s+t.capacity,0);
-    document.getElementById('hallSummary').innerText = `${tables.length} սեղ. · ${seated}/${totalSeats} նստ.`;
+    document.getElementById('hallSummary').innerText = `${tables.length} սեղան · ${seated}/${totalSeats} նստեցված`;
 }
 
 // Tab switching
@@ -500,7 +512,7 @@ function renderGuests() {
     const container = document.getElementById('guestList');
     const total = WA.allGuests.reduce((s,g)=>s+g.total_count,0);
     const seated = WA.allGuests.flatMap(g=>g.members).filter(m=>m.table_id).length;
-    document.getElementById('guestSummary').innerText = `${WA.allGuests.length} հրավ. · ${seated}/${total} նստ.`;
+    document.getElementById('guestSummary').innerText = `${WA.allGuests.length} հրավիրված · ${seated}/${total} նստեցված`;
     const filtered = WA.allGuests.filter(g=>guestFilter==='all'||g.side===guestFilter);
     if (!filtered.length) { container.innerHTML='<p class="text-center text-[#8c7b66] text-sm italic py-8">Հյուրեր չկան</p>'; return; }
     container.innerHTML='';
@@ -547,11 +559,25 @@ function toggleGuestSelect(cb) {
     if(cb.checked)selectedGuests.push(id);else selectedGuests=selectedGuests.filter(x=>x!==id);
     document.getElementById('mergeBar').classList.toggle('hidden',selectedGuests.length<2);
 }
-async function mergeSelected() {
-    const name=prompt('Նոր անուն՝');
-    if(!name)return;
-    if(await WA.api.mergeGuests(selectedGuests,name)){selectedGuests=[];document.getElementById('mergeBar').classList.add('hidden');await reloadAll();}
+function mergeSelected() {
+    // Բացում ենք մեր սեփական մոդալը բրաուզերի պրոմպտի փոխարեն
+    openModal('mergeNameModal');
+
+    document.getElementById('mergeConfirmBtn').onclick = async () => {
+        const name = document.getElementById('mergeNameInput').value.trim();
+        if (!name) return;
+
+        // Իրականացնում ենք միավորման գործողությունը
+        if (await WA.api.mergeGuests(selectedGuests, name)) {
+            selectedGuests = [];
+            document.getElementById('mergeBar').classList.add('hidden');
+            closeModal('mergeNameModal');
+            document.getElementById('mergeNameInput').value = ''; // Մաքրում ենք դաշտը
+            await reloadAll();
+        }
+    };
 }
+
 function openAddGuestSheet() {
     document.getElementById('m_guestName').value='';
     document.getElementById('m_guestCount').value=1;
@@ -567,7 +593,7 @@ async function submitAddGuest() {
     if(await WA.api.addGuest(name,count,side)){closeModal('addGuestModal');await reloadAll();}
 }
 function confirmDeleteGuest(id,name) {
-    document.getElementById('deleteConfirmText').innerText=`«${name}» — ջնջ.?`;
+    document.getElementById('deleteConfirmText').innerText=`ջնջել «${name}» - ին ?`;
     openModal('confirmDeleteModal');
     document.getElementById('deleteConfirmBtn').onclick=async()=>{if(await WA.api.deleteGuest(id)){closeModal('confirmDeleteModal');await reloadAll();}};
 }
@@ -578,7 +604,7 @@ function renderTables(tables, allMembers) {
     const filtered=tables.filter(t=>hallFilter==='all'||(t.side||'mutual')===hallFilter);
     if(!filtered.length){
         container.innerHTML=hallFilter==='all'
-            ?'<p class="text-center text-[#8c7b66] text-sm italic py-8">Սրահը դատարկ է —> ՝+ Սեղ.՝ ավելացնել</p>'
+            ?'<p class="text-center text-[#8c7b66] text-sm italic py-8">Սրահը դատարկ է —> ՝+ Սեղան՝ ավելացնել</p>'
             :'<p class="text-center text-[#8c7b66] text-sm italic py-8">Այս կողմից սեղաններ չկան</p>';
         return;
     }
@@ -599,11 +625,11 @@ function renderTables(tables, allMembers) {
                 <span style="font-size:9px;color:#445E3F;font-weight:700;">${table.table_number}</span>
             </div>
             <div class="flex-1 min-w-0">
-                <div class="text-sm font-semibold text-[#445E3F]">Սեղ. ${table.table_number} ${sideBadge}
+                <div class="text-sm font-semibold text-[#445E3F]">Սեղան ${table.table_number} ${sideBadge}
                     <span class="text-[11px] font-normal text-[#787878] ml-1">${WA.catLabel[table.category]||''}</span>
                 </div>
                 <div class="progress-bar mt-1.5"><div class="progress-fill" style="width:${pct}%"></div></div>
-                <div class="text-[10px] text-[#787878] mt-0.5">${seatedHere.length}/${table.capacity} · ${free} ազ.</div>
+                <div class="text-[10px] text-[#787878] mt-0.5">${seatedHere.length}/${table.capacity} · ${free} ազատ</div>
             </div>
             <div class="flex gap-1.5 flex-shrink-0">
                 <button onclick="event.stopPropagation();openEditCapacity(${table.id},${table.capacity})" class="w-8 h-8 rounded-lg border border-[#EEF2E4] bg-[#FFFFFF] flex items-center justify-center text-xs">✏️</button>
@@ -662,7 +688,7 @@ function selectCat(cat) {
     document.getElementById('m_tableCapacityDisplay').innerText=cap;
 }
 async function submitAddTable() {
-    if(!selectedCat){alert('Ընտ. տեսակ');return;}
+    if(!selectedCat){alert('Ընտրել տեսակ');return;}
     const num=document.getElementById('m_tableNumber').value.trim();
     const cap=parseInt(document.getElementById('m_tableCapacity').value);
     if(!num){document.getElementById('m_tableNumber').focus();return;}
@@ -670,6 +696,7 @@ async function submitAddTable() {
 }
 
 async function openTableDetail(tableId) {
+    window.activeTableId = tableId;
     const [tables,guests]=await Promise.all([WA.api.getTables(),WA.api.getGuests()]);
     const table=tables.find(t=>t.id===tableId);
     if(!table)return;
@@ -678,7 +705,7 @@ async function openTableDetail(tableId) {
     const free=table.capacity-seated.length;
     const sideBadge={'bride':'👰','groom':'🤵','mutual':'🤝'}[table.side||'mutual'];
 
-    document.getElementById('tableDetailTitle').innerText=`Սեղ. ${table.table_number} ${sideBadge}`;
+    document.getElementById('tableDetailTitle').innerText=`Սեղան ${table.table_number} ${sideBadge}`;
     document.getElementById('tableDetailMeta').innerText=`${seated.length}/${table.capacity}`;
     const body=document.getElementById('tableDetailBody');
     body.innerHTML='';
@@ -699,11 +726,11 @@ async function openTableDetail(tableId) {
     if(free>0){
         const lbl=document.createElement('div');
         lbl.className='text-[11px] text-[#8c7b66] font-bold uppercase tracking-wider mt-3 mb-1';
-        lbl.innerText=`Ազ. (${free})`;
+        lbl.innerText=`Ազատ (${free})`;
         body.appendChild(lbl);
         const addBtn=document.createElement('button');
         addBtn.className='w-full py-3 bg-[#445E3F] text-[#e8d5b0] rounded-xl text-sm font-semibold';
-        addBtn.innerText='+ Ավ. հյուր';
+        addBtn.innerText='+ ավելացնել հյուր';
         addBtn.onclick=()=>{closeModal('tableDetailModal');openGuestPickerForTable(tableId);};
         body.appendChild(addBtn);
     }
@@ -711,32 +738,75 @@ async function openTableDetail(tableId) {
 }
 
 function openGuestPickerForTable(tableId) {
-    const list=document.getElementById('guestPickerList');
-    list.innerHTML='';
-    const unseatedIds=new Set(WA.unseatedMembers.map(m=>m.id));
-    let any=false;
-    WA.allGuests.forEach(guest=>{
-        const um=guest.members.filter(m=>unseatedIds.has(m.id));
-        if(!um.length)return;
-        any=true;
-        const hdr=document.createElement('div');
-        hdr.className='text-[11px] font-bold text-[#8c7b66] uppercase tracking-wider mt-3 mb-1 px-1';
-        hdr.innerText=guest.display_name;
-        list.appendChild(hdr);
-        um.forEach(m=>{
-            const btn=document.createElement('button');
-            btn.className='w-full text-left px-4 py-3 rounded-xl border border-[#e8ddd0] bg-white text-sm font-medium flex justify-between items-center mb-1';
-            btn.innerHTML=`<span>👤 ${m.first_name||'Անանուն.'}</span><span class="text-[#c9a96e] font-bold text-lg">+</span>`;
-            btn.onclick=async()=>{try{await WA.seatOnTable(m.id,tableId);closeModal('guestPickerModal');await reloadAll();}catch(e){alert(e.message);}};
-            list.appendChild(btn);
+    const list = document.getElementById('guestPickerList');
+
+    // Ցուցակին տալիս ենք ֆիքսված բարձրություն և սպիտակ ֆոն
+    list.style.height = '60vh';
+    list.style.overflowY = 'auto';
+    list.style.backgroundColor = '#ffffff';
+
+    const render = (filter = 'all') => {
+        list.innerHTML = '';
+
+        // 1. Ֆիլտրի բար՝ ֆիքսված և ամբողջությամբ անթափանց
+        const filterContainer = document.createElement('div');
+        filterContainer.className = 'sticky top-0 z-50 bg-white pb-3 pt-1';
+        filterContainer.innerHTML = `
+            <div class="flex gap-2">
+                <button onclick="renderPicker('${filter}', 'all')" class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg ${filter === 'all' ? 'bg-[#445E3F] text-[#e8d5b0]' : 'bg-[#f7f3ee] text-[#5c4f3d]'}">Բոլորը</button>
+                <button onclick="renderPicker('${filter}', 'bride')" class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg ${filter === 'bride' ? 'bg-[#445E3F] text-[#e8d5b0]' : 'bg-[#f7f3ee] text-[#5c4f3d]'}">👰</button>
+                <button onclick="renderPicker('${filter}', 'groom')" class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg ${filter === 'groom' ? 'bg-[#445E3F] text-[#e8d5b0]' : 'bg-[#f7f3ee] text-[#5c4f3d]'}">🤵</button>
+            </div>
+        `;
+        list.appendChild(filterContainer);
+
+        const unseatedIds = new Set(WA.unseatedMembers.map(m => m.id));
+        const filteredGuests = WA.allGuests.filter(g => filter === 'all' || g.side === filter);
+
+        // 2. Հյուրերի ցուցակ՝ ապահովված սպիտակ ֆոնով
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'px-1 bg-white';
+
+        let any = false;
+        filteredGuests.forEach(guest => {
+            const um = guest.members.filter(m => unseatedIds.has(m.id));
+            if (!um.length) return;
+            any = true;
+
+            const hdr = document.createElement('div');
+            hdr.className = 'text-[11px] font-bold text-[#8c7b66] uppercase tracking-wider mt-3 mb-1 px-1 bg-white';
+            hdr.innerText = guest.display_name;
+            contentDiv.appendChild(hdr);
+
+            um.forEach(m => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-left px-4 py-3 rounded-xl border border-[#e8ddd0] bg-white text-sm font-medium flex justify-between items-center mb-1';
+                btn.innerHTML = `<span>👤 ${m.first_name || 'Անանուն'}</span><span class="text-[#c9a96e] font-bold text-lg">+</span>`;
+                btn.onclick = async () => {
+                    try {
+                        await WA.seatOnTable(m.id, tableId);
+                        closeModal('guestPickerModal');
+                        await reloadAll();
+                    } catch (e) { alert(e.message); }
+                };
+                contentDiv.appendChild(btn);
+            });
         });
-    });
-    if(!any)list.innerHTML='<p class="text-center text-[#8c7b66] text-sm italic py-6">Բոլ. նստ. 🎉</p>';
+
+        if (!any) {
+            contentDiv.innerHTML = '<p class="text-center text-[#8c7b66] text-sm italic py-6">Այս կողմից չնստեցված հյուրեր չկան</p>';
+        }
+
+        list.appendChild(contentDiv);
+    };
+
+    window.renderPicker = (current, next) => render(next);
+
+    render();
     openModal('guestPickerModal');
 }
-
 function confirmDeleteTable(id,num) {
-    document.getElementById('deleteConfirmText').innerText=`«Սեղ. ${num}» — ջնջ.?`;
+    document.getElementById('deleteConfirmText').innerText=`ջնջել «սեղան ${num}» — ը?`;
     openModal('confirmDeleteModal');
     document.getElementById('deleteConfirmBtn').onclick=async()=>{if(await WA.api.deleteTable(id)){closeModal('confirmDeleteModal');await reloadAll();}};
 }
@@ -764,7 +834,7 @@ function setUnseatedFilter(f) {
 function renderUnseated() {
     const container=document.getElementById('unseatedList');
     const totalM=WA.allGuests.reduce((s,g)=>s+g.total_count,0);
-    document.getElementById('unseatedSummary').innerText=`${totalM-WA.unseatedMembers.length}/${totalM} նստ. · ${WA.unseatedMembers.length} չ.ն.`;
+    document.getElementById('unseatedSummary').innerText=`${totalM-WA.unseatedMembers.length}/${totalM} նստեցված · ${WA.unseatedMembers.length} չնստեցված`;
     const unseatedIds=new Set(WA.unseatedMembers.map(m=>m.id));
     const filtered=WA.allGuests.filter(g=>unseatedFilter==='all'||g.side===unseatedFilter);
     container.innerHTML='';
@@ -777,7 +847,7 @@ function renderUnseated() {
         const uc=guestUnseated.length;
         const total=guest.members.length;
         const pillCls=uc===0?'bg-[#7a9e7e]/10 text-[#7a9e7e]':uc===total?'bg-[#c4736a]/10 text-[#c4736a]':'bg-[#c9a96e]/15 text-[#8a6c30]';
-        const pillText=uc===0?'✓ Բոլ.':uc===total?`${uc} Չ.Ն.`:`${uc}/${total}`;
+        const pillText=uc===0?'✓ Բոլորը':uc===total?`${uc} չնստեցված`:`${uc}/${total}`;
         const card=document.createElement('div');
         card.className='bg-white rounded-2xl border border-[#e8ddd0] overflow-hidden shadow-sm';
         card.innerHTML=`
@@ -786,14 +856,14 @@ function renderUnseated() {
                 <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold ${pillCls}">${pillText}</span>
                 <button onclick="openSeatCountSheet(${guest.id})" ${uc===0?'disabled':''}
                     class="flex-shrink-0 text-xs font-semibold px-3 py-2 rounded-lg ${uc===0?'opacity-30 bg-[#f7f3ee] text-[#8c7b66]':'bg-[#445E3F] text-[#e8d5b0]'}">
-                    Նստ. ➔
+                    Նստեցնել ➔
                 </button>
             </div>
-            ${guestUnseated.length>0?`<div class="border-t border-[#f7f3ee]">${guestUnseated.map(m=>`<div class="flex items-center gap-2 px-6 py-2 text-xs text-[#5c4f3d] border-b border-[#f7f3ee] last:border-0"><span class="flex-1">${m.first_name||'անանուն'}</span><span class="text-[9px] text-[#c8bfb2]">Չ.Ն.</span></div>`).join('')}</div>`:''}`
+            ${guestUnseated.length>0?`<div class="border-t border-[#f7f3ee]">${guestUnseated.map(m=>`<div class="flex items-center gap-2 px-6 py-2 text-xs text-[#5c4f3d] border-b border-[#f7f3ee] last:border-0"><span class="flex-1">${m.first_name||'անանուն'}</span><span class="text-[9px] text-[#c8bfb2]">չնստեցված</span></div>`).join('')}</div>`:''}`
         frag.appendChild(card);
     });
     container.appendChild(frag);
-    if(!any)container.innerHTML='<p class="text-center text-[#8c7b66] text-sm italic py-8">Բոլ. նստ. 🎉</p>';
+    if(!any)container.innerHTML='<p class="text-center text-[#8c7b66] text-sm italic py-8">Բոլորը նստեցված են</p>';
 }
 
 function openSeatCountSheet(guestId) {
@@ -801,15 +871,15 @@ function openSeatCountSheet(guestId) {
     if(!guest)return;
     const unseatedIds=new Set(WA.unseatedMembers.map(m=>m.id));
     const um=guest.members.filter(m=>unseatedIds.has(m.id));
-    if(!um.length){alert('Բոլ. նստ.');return;}
+    if(!um.length){alert('Բոլորը նստեցված են');return;}
     pendingSeatGuest={guestId,display_name:guest.display_name,unseatedMembers:um};
     pendingSeatCount=um.length;
     const inp=document.getElementById('m_seatCount');
     inp.value=pendingSeatCount; inp.max=um.length;
     document.getElementById('m_seatCountDisplay').innerText=pendingSeatCount;
     document.getElementById('seatCountTitle').innerText=guest.display_name;
-    document.getElementById('seatCountHint').innerText=`${um.length} հ. սπ.`;
-    document.getElementById('seatCountMaxLabel').innerText=`Առ. ${um.length}`;
+    document.getElementById('seatCountHint').innerText=`${um.length} հոգի`;
+    document.getElementById('seatCountMaxLabel').innerText=`Առավելագույնը ${um.length}`;
     openModal('seatCountModal');
 }
 async function confirmSeatCount() {
@@ -821,10 +891,10 @@ async function confirmSeatCount() {
 async function openTablePickerForGroup(guestInfo,count) {
     const [tables,guests]=await Promise.all([WA.api.getTables(),WA.api.getGuests()]);
     const allMembers=guests.flatMap(g=>g.members);
-    document.getElementById('tablePickerTitle').innerText=`${count} հ. համ.`;
+    document.getElementById('tablePickerTitle').innerText=`${count} հոգու համար`;
     const list=document.getElementById('tablePickerList');
     list.innerHTML='';
-    if(!tables.length){list.innerHTML='<p class="text-center text-[#8c7b66] text-sm italic py-6">Սեղ. չկան</p>';openModal('tablePickerModal');return;}
+    if(!tables.length){list.innerHTML='<p class="text-center text-[#8c7b66] text-sm italic py-6">Սեղաններ չկան</p>';openModal('tablePickerModal');return;}
     tables.forEach(table=>{
         const seated=allMembers.filter(m=>m.table_id===table.id).length;
         const avail=table.capacity-seated;
@@ -836,12 +906,12 @@ async function openTablePickerForGroup(guestInfo,count) {
         btn.className=`w-full text-left px-4 py-3 rounded-xl border mb-1 transition-all ${canFit?'border-[#e8ddd0] bg-white':'border-[#f0eae2] bg-[#faf8f5] opacity-40'}`;
         btn.innerHTML=`
             <div class="flex justify-between items-center mb-1">
-                <span class="text-sm font-semibold">Սեղ. ${table.table_number} ${sideBadge}</span>
+                <span class="text-sm font-semibold">Սեղան ${table.table_number} ${sideBadge}</span>
                 <span class="text-[10px] text-[#8c7b66]">${WA.catLabel[table.category]||''}</span>
             </div>
             <div class="flex items-center gap-2">
                 <div class="progress-bar flex-1"><div class="progress-fill ${canFit?'bg-[#7a9e7e]':'bg-[#c4736a]'}" style="width:${pct}%"></div></div>
-                <span class="text-[10px] font-medium ${canFit?'text-[#7a9e7e]':'text-[#c4736a]'}">${avail} ազ.</span>
+                <span class="text-[10px] font-medium ${canFit?'text-[#7a9e7e]':'text-[#c4736a]'}">${avail} ազատ</span>
             </div>`;
         if(canFit) btn.onclick=async()=>{
             closeModal('tablePickerModal');
@@ -856,18 +926,51 @@ async function openTablePickerForGroup(guestInfo,count) {
 }
 
 // ── Rename ──
-function openRename(memberId,oldName) {
-    document.getElementById('renameInput').value=oldName;
+function openRename(memberId, oldName) {
+    document.getElementById('renameInput').value = oldName;
     openModal('renameMemberModal');
-    setTimeout(()=>document.getElementById('renameInput').focus(),250);
-    document.getElementById('renameConfirmBtn').onclick=async()=>{
-        const name=document.getElementById('renameInput').value.trim();
-        if(!name)return;
-        if(await WA.api.renameMember(memberId,name)){closeModal('renameMemberModal');await reloadAll();}
+    setTimeout(() => document.getElementById('renameInput').focus(), 250);
+
+    document.getElementById('renameConfirmBtn').onclick = async () => {
+        const newName = document.getElementById('renameInput').value.trim();
+        if (!newName) return;
+
+        if (await WA.api.renameMember(memberId, newName)) {
+            closeModal('renameMemberModal');
+
+            // --- ԿԱՐԵՎՈՐ ՓՈՓՈԽՈՒԹՅՈՒՆՆԵՐԸ ՍՏՈՐԵՎ ---
+
+            // 1. Թարմացնում ենք տեղական տվյալները (Local Data Update)
+            // Փնտրում ենք հյուրին բոլոր հյուրերի ցուցակում
+            WA.allGuests.forEach(guest => {
+                const member = guest.members.find(m => m.id === memberId);
+                if (member) member.first_name = newName;
+            });
+
+            // 2. Թարմացնում ենք չնստեցվածների ցուցակը (եթե այնտեղ էլ կա)
+            if (WA.unseatedMembers) {
+                const unseated = WA.unseatedMembers.find(m => m.id === memberId);
+                if (unseated) unseated.first_name = newName;
+            }
+
+            // 3. Վերանկարում ենք բոլոր բաժինները, որոնք ցուցադրում են այդ տվյալները
+            if (typeof renderGuests === 'function') renderGuests();
+            if (typeof renderUnseated === 'function') renderUnseated();
+
+            // Եթե սեղանի պատուհանը բաց է
+            const detailModal = document.getElementById('tableDetailModal');
+            if (detailModal && detailModal.classList.contains('open') && typeof window.activeTableId !== 'undefined') {
+                await openTableDetail(window.activeTableId);
+            }
+
+            // Թարմացնում ենք կլորները
+            const [tables] = await Promise.all([WA.api.getTables()]);
+            renderTables(tables, WA.allGuests.flatMap(g => g.members));
+        }
     };
 }
 function confirmUnseat(memberId,name) {
-    document.getElementById('deleteConfirmText').innerText=`«${name}» — հεռ. σεղ.?`;
+    document.getElementById('deleteConfirmText').innerText=`«${name}» - ին հեռացնել սեղանից?`;
     openModal('confirmDeleteModal');
     document.getElementById('deleteConfirmBtn').onclick=async()=>{
         await WA.api.unseatMember(memberId);
