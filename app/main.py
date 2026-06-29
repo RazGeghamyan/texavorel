@@ -12,7 +12,7 @@ from app.routers.api_v1.guest_members import router as guest_member_router
 from app.routers.views import pages  # Frontend էջերի ռոուտերը
 
 # Ավտոմատ ստեղծում ենք բոլոր MySQL աղյուսակները բազայի մեջ, եթե դրանք չկան
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Wedding Planner API 💍",
