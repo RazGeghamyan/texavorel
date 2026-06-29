@@ -2,12 +2,12 @@
  * hall.js — Hall canvas: render + drag/drop + zoom/pan + mutations.
  *
  * RULE: Zero GET requests after mutations.
- *       Every write uses the server response to patchState() directly.
+ * Every write uses the server response to patchState() directly.
  *
  * Depends on: api.js, state.js (State + patchState), modals.js
  */
 
-// ── Position save ─────────────────────────────────────────────────────────────
+// ── Position & Rotation save ──────────────────────────────────────────────────
 
 let _saveTimer = null;
 
@@ -22,7 +22,6 @@ function scheduleSave(tableId) {
 async function _savePositionSilent(tableId, x, y) {
     const res = await API.updateTablePosition(tableId, x, y);
     if (res.ok) showSaveIndicator();
-    // Position is already in State.tablePositions — no patchState needed
 }
 
 async function saveAllPositions() {
@@ -85,6 +84,39 @@ function initHallPanZoom() {
 }
 
 document.addEventListener('mousemove', (e) => {
+    // 1. Սեղանի ազատ պտույտ մկնիկով (Drag-to-Rotate)
+    if (State.isRotatingTableId) {
+        const tableId = State.isRotatingTableId;
+        const el = document.querySelector(`[data-table-id="${tableId}"]`);
+        if (!el) return;
+
+        const rect = el.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        const currentMouseAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
+        const angleDiff = currentMouseAngle - State.rotateStartMouseAngle;
+
+        let newAngle = (State.rotateStartAngle + angleDiff) % 360;
+        if (newAngle < 0) newAngle += 360;
+
+        State.tableRotations[tableId] = newAngle;
+        el.style.transform = `rotate(${newAngle}deg)`;
+
+        // Պահում ենք աթոռների ուղղահայաց դիրքը
+        el.querySelectorAll('.chair').forEach(c => {
+            c.style.transform = `translate(-50%,-50%) rotate(${-newAngle}deg)`;
+        });
+
+        // Պահում ենք կոճակների բլոկը միշտ ուղղահայաց և տակի հատվածում
+        const actionsEl = el.querySelector('.table-actions');
+        if (actionsEl) {
+            actionsEl.style.transform = `translateX(-50%) rotate(${-newAngle}deg)`;
+        }
+        return;
+    }
+
+    // 2. Սեղանի տեղաշարժ (Drag)
     if (State.activeMovingTable) {
         const wrapRect = document.getElementById('zoomWrapper').getBoundingClientRect();
         const x = (e.clientX - wrapRect.left) / State.zoomScale - State.dragOffset.x;
@@ -96,6 +128,8 @@ document.addEventListener('mousemove', (e) => {
         State.tablePositions[tableId] = { x, y };
         return;
     }
+
+    // 3. Կտավի տեղաշարժ (Pan)
     if (State.isPanning) {
         State.panOffset.x = e.clientX - State.panStart.x;
         State.panOffset.y = e.clientY - State.panStart.y;
@@ -104,6 +138,10 @@ document.addEventListener('mousemove', (e) => {
 });
 
 document.addEventListener('mouseup', () => {
+    if (State.isRotatingTableId) {
+        scheduleSave(State.isRotatingTableId);
+        State.isRotatingTableId = null;
+    }
     if (State.activeMovingTable) {
         State.activeMovingTable.classList.remove('dragging');
         const tableId = parseInt(State.activeMovingTable.getAttribute('data-table-id'));
@@ -176,20 +214,6 @@ function getChairPosition(category, i, total, dim) {
     return             { x: spacing * (i - half + 1), y: h + 16 };
 }
 
-// ── Rotate ────────────────────────────────────────────────────────────────────
-
-function rotateTable(tableId, degrees) {
-    if (State.tableRotations[tableId] === undefined) State.tableRotations[tableId] = 0;
-    State.tableRotations[tableId] = (State.tableRotations[tableId] + degrees) % 360;
-    const el = document.querySelector(`[data-table-id="${tableId}"]`);
-    if (el) {
-        el.style.transform = `rotate(${State.tableRotations[tableId]}deg)`;
-        el.querySelectorAll('.chair').forEach(c => {
-            c.style.transform = `translate(-50%,-50%) rotate(${-State.tableRotations[tableId]}deg)`;
-        });
-    }
-}
-
 // ── Build single table DOM element ───────────────────────────────────────────
 
 function buildTableElement(table, allMembers) {
@@ -206,7 +230,8 @@ function buildTableElement(table, allMembers) {
     tDiv.style.height = dim.h + 'px';
 
     if (State.tableRotations[table.id] === undefined) State.tableRotations[table.id] = 0;
-    tDiv.style.transform = `rotate(${State.tableRotations[table.id]}deg)`;
+    const currentAngle = State.tableRotations[table.id];
+    tDiv.style.transform = `rotate(${currentAngle}deg)`;
 
     const sideBorderColor = { bride: '#c4736a', groom: '#7a9e7e', mutual: '#cfc4b4' }[table.side || 'mutual'];
     const sideBadge       = { bride: '👰',       groom: '🤵',      mutual: '🤝' }[table.side || 'mutual'];
@@ -225,32 +250,50 @@ function buildTableElement(table, allMembers) {
     ].join(';');
     body.innerHTML = `
         <div style="text-align:center;pointer-events:none;z-index:2;">
-            <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:700;color:#1a1612;line-height:1.1;">Սեղ. ${table.table_number}</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:700;color:#1a1612;line-height:1.1;">Սեղան ${table.table_number}</div>
             <div style="font-size:10px;color:#8c7b66;margin-top:2px;">${table.capacity} տեղ ${sideBadge}</div>
         </div>`;
 
     const actions = document.createElement('div');
-    actions.className = 'table-actions absolute top-full mt-10 left-0 w-full flex justify-center gap-1.5 z-30 whitespace-nowrap pointer-events-auto';
+    // left: 50% և transform: translateX(-50%) rotate(...) ապահովում են կայուն հորիզոնական դիրքը սեղանի տակ
+    actions.className = 'table-actions absolute top-full mt-10 left-1/2 flex justify-center gap-1.5 z-30 whitespace-nowrap pointer-events-auto';
+    actions.style.transformOrigin = 'top center';
+    actions.style.transform = `translateX(-50%) rotate(${-currentAngle}deg)`;
 
     actions.innerHTML = `
-        <button onclick="event.stopPropagation();rotateTable(${table.id},-45)"
-            class="bg-white border border-[#e8ddd0] hover:border-[#c9a96e] rounded-md text-[10px] font-medium text-[#5c4f3d] shadow-sm cursor-pointer transition-all"
-            style="width:28px;height:24px;padding:0;" title="Պտտել ձախ">↩️</button>
+        <button id="rotateBtn-${table.id}"
+            class="bg-white border border-[#e8ddd0] hover:border-[#c9a96e] rounded-md text-[10px] font-medium text-[#5c4f3d] shadow-sm cursor-grab transition-all select-none active:cursor-grabbing"
+            style="width:36px;height:24px;padding:0;" title="Սեղմած պահեք ու պտտեք">🔄</button>
         <button onclick="event.stopPropagation();openTableSheet(${table.id})"
             class="bg-white border border-[#e8ddd0] hover:border-[#c9a96e] rounded-md text-[10px] font-medium text-[#5c4f3d] shadow-sm cursor-pointer transition-all"
-            style="width:76px;height:24px;padding:0;">📋 Թերթ.</button>
+            style="width:76px;height:24px;padding:0;">📋 Թերթիկ</button>
         <button onclick="event.stopPropagation();editTableCapacity(${table.id},${table.capacity})"
             class="bg-white border border-[#e8ddd0] hover:border-[#c9a96e] rounded-md text-[10px] font-medium text-[#5c4f3d] shadow-sm cursor-pointer transition-all"
-            style="width:60px;height:24px;padding:0;">✏️ Աթ.</button>
-        <button onclick="event.stopPropagation();rotateTable(${table.id},45)"
-            class="bg-white border border-[#e8ddd0] hover:border-[#c9a96e] rounded-md text-[10px] font-medium text-[#5c4f3d] shadow-sm cursor-pointer transition-all"
-            style="width:28px;height:24px;padding:0;" title="Պտտել աջ">↪️</button>
+            style="width:60px;height:24px;padding:0;">✏️ Աթոռ</button>
         <button onclick="event.stopPropagation();deleteTable(${table.id})"
             class="bg-white border border-[#e8ddd0] hover:text-[#c4736a] hover:border-[#c4736a] rounded-md text-[10px] font-medium text-[#5c4f3d] shadow-sm cursor-pointer transition-all"
             style="width:32px;height:24px;padding:0;">🗑️</button>`;
 
     tDiv.appendChild(body);
     tDiv.appendChild(actions);
+
+    setTimeout(() => {
+        const rotBtn = document.getElementById(`rotateBtn-${table.id}`);
+        if (rotBtn) {
+            rotBtn.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                State.isRotatingTableId = table.id;
+                State.rotateStartAngle  = State.tableRotations[table.id] || 0;
+
+                const rect = tDiv.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+
+                State.rotateStartMouseAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
+            });
+        }
+    }, 0);
 
     // ── Chairs ──
     const seatedHere  = allMembers.filter(m => m.table_id === table.id);
@@ -313,7 +356,6 @@ function buildTableElement(table, allMembers) {
         State.dragOffset.y = (e.clientY - wrapRect.top)  / State.zoomScale - parseFloat(tDiv.style.top  || 0);
     });
 
-    // ── Table as drop target ──
     tDiv.addEventListener('dragover',  (e) => { e.preventDefault(); e.stopPropagation(); tDiv.classList.add('drag-over'); });
     tDiv.addEventListener('dragleave', (e) => { if (!tDiv.contains(e.relatedTarget)) tDiv.classList.remove('drag-over'); });
     tDiv.addEventListener('drop', async (e) => {
@@ -359,7 +401,6 @@ async function seatMemberOnChair(memberId, tableId, seatIndex) {
         alert(err.detail || 'Ազատ տեղ չկա կամ սխալ կատարվեց');
         return;
     }
-    // ✅ No GET — patch State directly
     patchState({ memberSeated: { memberId, tableId, seatIndex } });
 }
 
@@ -374,7 +415,7 @@ function openGuestPickerForSeat(tableId, seatIndex) {
     const unseatedIds = new Set(State.unseatedMembers.map(m => m.id.toString()));
 
     if (!State.unseatedMembers.length) {
-        list.innerHTML = '<p class="text-center text-[#8c7b66] text-sm italic py-6">Չնստ. հյուրեր չկան 🎉</p>';
+        list.innerHTML = '<p class="text-center text-[#8c7b66] text-sm italic py-6">Չնստեցված հյուրեր չկան 🎉</p>';
         openModal('guestPickerModal');
         return;
     }
@@ -414,12 +455,11 @@ function manageSeatedMember(member) {
     document.getElementById('chairActionUnseatBtn').onclick = () => {
         closeModal('chairActionsModal');
         showConfirmDelete(
-            `«${member.first_name || 'Անանուն'}» — հեռ.?`,
+            `«${member.first_name || 'Անանուն'}» - ին հեռացնել?`,
             async () => {
                 const res = await API.unseatMember(member.id);
                 if (res.ok) {
                     closeModal('confirmDeleteModal');
-                    // ✅ No GET
                     patchState({ memberUnseated: { memberId: member.id } });
                 }
             },
@@ -430,9 +470,6 @@ function manageSeatedMember(member) {
 
 // ── Seat helper (used by unseated.js drag-drop) ───────────────────────────────
 
-/**
- * Find next free seat_index from State (no fetch).
- */
 function findNextFreeSeatFromState(tableId) {
     const table = State.allTables.find(t => t.id === tableId);
     if (!table) return null;
@@ -449,10 +486,6 @@ function findNextFreeSeatFromState(tableId) {
     return null;
 }
 
-/**
- * Seat a member on a table, auto-assigning next free seat.
- * ✅ No GET — patches State from server response.
- */
 async function seatMemberOnTable(memberId, tableId) {
     const seatIndex = findNextFreeSeatFromState(tableId);
     if (seatIndex === null) {
@@ -465,7 +498,6 @@ async function seatMemberOnTable(memberId, tableId) {
         alert(err.detail || 'Սխալ');
         return false;
     }
-    // ✅ No GET — patch State directly
     patchState({ memberSeated: { memberId, tableId, seatIndex } });
     return true;
 }
@@ -497,7 +529,7 @@ function startAddTable(category) {
         category === 'round'            ? 'Կլոր սեղան — աթոռները շրջանով' :
         category === 'rectangle'        ? 'Ուղղանկյուն — աթոռները երկու կողմից' :
         category === 'double_rectangle' ? 'Կրկնակի — երկու կողմից, ավելի երկար' :
-                                          'Պրեզիդիում — լայն, հյուրերի ի պատիվ';
+                                          'Պրեզիդիում — հարսի և փեսայի սեղան';
     selectNewTableSide('mutual');
     openModal('addTableModal');
     setTimeout(() => document.getElementById('newTableNumber').focus(), 100);
@@ -514,9 +546,8 @@ async function confirmAddTable() {
 
     const res = await API.createTable(num, State.pendingNewCategory, State.pendingNewCapacity, State.pendingNewSide);
     if (res.ok) {
-        const newTable = await res.json();  // server returns full table object
+        const newTable = await res.json();
         closeModal('addTableModal');
-        // ✅ No GET — push server response directly into State
         patchState({ tableAdded: newTable });
     }
 }
@@ -538,9 +569,8 @@ function changeEditCapacity(delta) {
 async function confirmEditCapacity() {
     const res = await API.updateTableCapacity(State.pendingEditTableId, State.pendingEditCapacityVal);
     if (res.ok) {
-        const updatedTable = await res.json();  // server returns updated table
+        const updatedTable = await res.json();
         closeModal('editCapacityModal');
-        // ✅ No GET — replace table in State
         patchState({ tableUpdated: updatedTable });
     } else {
         const err = await res.json().catch(() => ({}));
@@ -557,13 +587,11 @@ function deleteTable(id) {
             const res = await API.deleteTable(id);
             if (res.ok) {
                 closeModal('confirmDeleteModal');
-                // ✅ Ուղղակի փոխանցում ենք ID-ն patchState-ին, ոչ մի սթեյթի ձեռքով փոփոխություն այստեղ չենք անում
                 patchState({ tableRemoved: id });
             }
         },
     );
 }
-
 
 // ── Dropdown menu ─────────────────────────────────────────────────────────────
 

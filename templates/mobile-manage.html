@@ -670,8 +670,10 @@ function switchTab(tab) {
 }
 
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
+function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    if (id === 'tableDetailModal') window.activeTableId = null;
+}
 function changeM(fieldId, delta) {
     const input = document.getElementById(fieldId);
     const display = document.getElementById(fieldId + 'Display');
@@ -962,24 +964,42 @@ function openTableDetail(tableId) {
     openModal('tableDetailModal');
 }
 
+/**
+ * FIX: no more `window.renderPicker`. The render function and its filter
+ * buttons stay entirely inside this closure. No global is touched, so each
+ * call to this function creates one self-contained closure that becomes
+ * fully eligible for garbage collection once the modal is closed and a new
+ * call replaces it — nothing lingers in `window`.
+ */
 function openGuestPickerForTable(tableId) {
     const list = document.getElementById('guestPickerList');
     list.style.height = '60vh';
     list.style.overflowY = 'auto';
     list.style.backgroundColor = '#ffffff';
 
-    const render = (filter = 'all') => {
+    function render(filter) {
         list.innerHTML = '';
 
         const filterContainer = document.createElement('div');
         filterContainer.className = 'sticky top-0 z-50 bg-white pb-3 pt-1';
-        filterContainer.innerHTML = `
-            <div class="flex gap-2">
-                <button onclick="renderPicker('${filter}', 'all')" class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg ${filter === 'all' ? 'bg-[#445E3F] text-[#e8d5b0]' : 'bg-[#f7f3ee] text-[#5c4f3d]'}">Բոլորը</button>
-                <button onclick="renderPicker('${filter}', 'bride')" class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg ${filter === 'bride' ? 'bg-[#445E3F] text-[#e8d5b0]' : 'bg-[#f7f3ee] text-[#5c4f3d]'}">👰</button>
-                <button onclick="renderPicker('${filter}', 'groom')" class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg ${filter === 'groom' ? 'bg-[#445E3F] text-[#e8d5b0]' : 'bg-[#f7f3ee] text-[#5c4f3d]'}">🤵</button>
-            </div>
-        `;
+
+        const filters = [
+            { key: 'all',   label: 'Բոլորը' },
+            { key: 'bride', label: '👰' },
+            { key: 'groom', label: '🤵' },
+        ];
+
+        const row = document.createElement('div');
+        row.className = 'flex gap-2';
+        filters.forEach(f => {
+            const btn = document.createElement('button');
+            btn.className = `flex-1 py-1.5 text-[11px] font-semibold rounded-lg ${filter === f.key ? 'bg-[#445E3F] text-[#e8d5b0]' : 'bg-[#f7f3ee] text-[#5c4f3d]'}`;
+            btn.innerText = f.label;
+            // ✅ Listener bound directly to the local `render` closure — no global lookup.
+            btn.addEventListener('click', () => render(f.key));
+            row.appendChild(btn);
+        });
+        filterContainer.appendChild(row);
         list.appendChild(filterContainer);
 
         const unseatedIds = new Set(WA.state.unseatedMembers.map(m => m.id));
@@ -1018,11 +1038,9 @@ function openGuestPickerForTable(tableId) {
         }
 
         list.appendChild(contentDiv);
-    };
+    }
 
-    window.renderPicker = (current, next) => render(next);
-
-    render();
+    render('all');
     openModal('guestPickerModal');
 }
 function confirmDeleteTable(id, num) {
@@ -1061,6 +1079,8 @@ function setUnseatedFilter(f) {
     document.getElementById(`uf-${f}`).className = 'uf-pill flex-1 py-1.5 text-[11px] font-semibold rounded-lg bg-[#445E3F] text-[#e8d5b0]';
     renderUnseated();
 }
+const openedUnseatedGroups = new Set();
+
 function renderUnseated() {
     const container = document.getElementById('unseatedList');
     const totalM = WA.state.allGuests.reduce((s, g) => s + g.total_count, 0);
@@ -1071,29 +1091,62 @@ function renderUnseated() {
     const frag = document.createDocumentFragment();
     let any = false;
     filtered.forEach(guest => {
-        const guestUnseated = guest.members.filter(m => unseatedIds.has(m.id));
         if (!guest.members.length) return;
         any = true;
+        const guestUnseated = guest.members.filter(m => unseatedIds.has(m.id));
         const uc = guestUnseated.length;
         const total = guest.members.length;
         const pillCls = uc === 0 ? 'bg-[#7a9e7e]/10 text-[#7a9e7e]' : uc === total ? 'bg-[#c4736a]/10 text-[#c4736a]' : 'bg-[#c9a96e]/15 text-[#8a6c30]';
         const pillText = uc === 0 ? '✓ Բոլորը' : uc === total ? `${uc} չնստեցված` : `${uc}/${total}`;
+        const isOpen = openedUnseatedGroups.has(guest.id);
+
         const card = document.createElement('div');
         card.className = 'bg-white rounded-2xl border border-[#e8ddd0] overflow-hidden shadow-sm';
         card.innerHTML = `
-            <div class="flex items-center gap-2 px-4 py-3">
-                <span class="text-sm font-semibold flex-1 truncate">${guest.display_name}</span>
-                <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold ${pillCls}">${pillText}</span>
-                <button onclick="openSeatCountSheet(${guest.id})" ${uc === 0 ? 'disabled' : ''}
-                    class="flex-shrink-0 text-xs font-semibold px-3 py-2 rounded-lg ${uc === 0 ? 'opacity-30 bg-[#f7f3ee] text-[#8c7b66]' : 'bg-[#445E3F] text-[#e8d5b0]'}">
-                    Նստեցնել ➔
-                </button>
+            <div class="px-4 py-3">
+                <!-- Վերին շարք: անուն + եռանկյունի -->
+                <div class="flex items-center gap-2 cursor-pointer" onclick="toggleUnseatedGroup(${guest.id}, this)">
+                    <span class="text-sm font-semibold flex-1 truncate">${guest.display_name}</span>
+                    <span class="text-[#c8bfb2] text-xs toggle-arrow">${isOpen ? '▲' : '▼'}</span>
+                </div>
+                <!-- Ներքին շարք: badge + կոճակ -->
+                <div class="flex items-center justify-between mt-2 gap-2">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold ${pillCls}">${pillText}</span>
+                    <button onclick="openSeatCountSheet(${guest.id})" ${uc === 0 ? 'disabled' : ''}
+                        class="flex-shrink-0 text-xs font-semibold px-3 py-2 rounded-lg ${uc === 0 ? 'opacity-30 bg-[#f7f3ee] text-[#8c7b66]' : 'bg-[#445E3F] text-[#e8d5b0]'}">
+                        Նստեցնել ➔
+                    </button>
+                </div>
             </div>
-            ${guestUnseated.length > 0 ? `<div class="border-t border-[#f7f3ee]">${guestUnseated.map(m => `<div class="flex items-center gap-2 px-6 py-2 text-xs text-[#5c4f3d] border-b border-[#f7f3ee] last:border-0"><span class="flex-1">${m.first_name || 'անանուն'}</span><span class="text-[9px] text-[#c8bfb2]">չնստեցված</span></div>`).join('')}</div>` : ''}`
+            <div class="guest-members-panel ${isOpen ? 'open' : ''}" id="ump-${guest.id}">
+                <div class="border-t border-[#f7f3ee]">
+                    ${guest.members.map(m => `
+                        <div class="flex items-center gap-2 px-6 py-2 text-xs text-[#5c4f3d] border-b border-[#f7f3ee] last:border-0">
+                            <span class="flex-1">${m.first_name || 'անանուն'}</span>
+                            <span class="text-[9px] ${unseatedIds.has(m.id) ? 'text-[#c4736a]' : 'bg-[#7a9e7e]/10 text-[#7a9e7e] px-1.5 py-0.5 rounded-full'}">
+                                ${unseatedIds.has(m.id) ? 'չնստեցված' : '✓'}
+                            </span>
+                        </div>`).join('')}
+                </div>
+            </div>`;
         frag.appendChild(card);
     });
     container.appendChild(frag);
     if (!any) container.innerHTML = '<p class="text-center text-[#8c7b66] text-sm italic py-8">Բոլորը նստեցված են</p>';
+}
+
+function toggleUnseatedGroup(id, headerEl) {
+    const panel = document.getElementById(`ump-${id}`);
+    const arrow = headerEl.querySelector('.toggle-arrow');
+    if (panel.classList.contains('open')) {
+        panel.classList.remove('open');
+        openedUnseatedGroups.delete(id);
+        if (arrow) arrow.innerText = '▼';
+    } else {
+        panel.classList.add('open');
+        openedUnseatedGroups.add(id);
+        if (arrow) arrow.innerText = '▲';
+    }
 }
 
 function openSeatCountSheet(guestId) {
@@ -1184,26 +1237,190 @@ function confirmUnseat(memberId, name) {
 }
 
 // ── PDF (reads from state only — no fetch) ───────────────────────────────────
-function exportToPDF() {
-    const tables = [...WA.state.allTables].sort((a, b) => parseInt(a.table_number) - parseInt(b.table_number));
+// ── PDF (reads from state only — no fetch) ───────────────────────────────────
+
+// Cache so the Armenian font is fetched only once per page session
+let _armenianFontBase64 = null;
+
+function _arrayBufferToBase64(buffer) {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary);
+}
+
+async function _loadArmenianFont(doc) {
+    if (!_armenianFontBase64) {
+        const res = await fetch('https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-armenian@latest/armenian-400-normal.ttf');
+        const buf = await res.arrayBuffer();
+        _armenianFontBase64 = _arrayBufferToBase64(buf);
+    }
+    doc.addFileToVFS('NotoSansArmenian.ttf', _armenianFontBase64);
+    doc.addFont('NotoSansArmenian.ttf', 'NotoArm', 'normal');
+    doc.addFont('NotoSansArmenian.ttf', 'NotoArm', 'bold');
+}
+
+/**
+ * NotoSansArmenian-ի «armenian» subset-ը ՉՈՒՆԻ թվանշանների (0-9) կամ
+ * լատինատառ glyph-ներ (Google/Noto-ի կանոն)։ Դրա համար «Սեղան 1»-ի նման
+ * տեքստը պետք է բաժանենք հատվածների՝ հայկական vs ոչ-հայկական, և գծենք
+ * առանձին ֆոնտերով։
+ */
+function _splitRuns(text) {
+    const str = String(text == null ? '' : text);
+    const runs = [];
+    let current = '';
+    let currentIsArm = null;
+    for (const ch of str) {
+        const isArm = /[\u0530-\u058F]/.test(ch);
+        if (currentIsArm === null) {
+            current = ch;
+            currentIsArm = isArm;
+        } else if (isArm === currentIsArm) {
+            current += ch;
+        } else {
+            runs.push({ text: current, isArm: currentIsArm });
+            current = ch;
+            currentIsArm = isArm;
+        }
+    }
+    if (current) runs.push({ text: current, isArm: currentIsArm });
+    return runs;
+}
+
+/**
+ * Ինքնուրույն գծում է cell-ի տեքստը՝ հատված-հատված, ֆոնտը փոխելով
+ * հայկական/ոչ-հայկական հատվածների միջև։
+ */
+function _drawMixedCellText(doc, data) {
+    const raw = data.cell.raw;
+    if (raw === null || raw === undefined || raw === '') return;
+
+    const fontSize = data.cell.styles.fontSize || 8;
+    const isBold   = data.cell.styles.fontStyle === 'bold';
+    const padLeft  = data.cell.padding('left');
+
+    let x = data.cell.x + padLeft;
+    const fontSizeMm = fontSize / 72 * 25.4; // pt → mm
+    const y = data.cell.y + data.cell.height / 2 + fontSizeMm * 0.32;
+
+    doc.setFontSize(fontSize);
+    const c = data.cell.styles.textColor;
+
+    _splitRuns(raw).forEach(run => {
+        doc.setFont(run.isArm ? 'NotoArm' : 'helvetica', isBold ? 'bold' : 'normal');
+        if (Array.isArray(c)) doc.setTextColor(c[0], c[1], c[2]);
+
+        doc.text(run.text, x, y);
+        x += doc.getTextWidth(run.text);
+    });
+}
+
+/**
+ * Ֆոնի թույլ երանգ՝ ըստ սեղանի կողմի — փոխարինում է հին «դատարկ տող»
+ * անջատիչին, քանի որ պահում ենք էջի տարածքը հյուրերի համար։
+ */
+function _sideFillColor(sideLabel) {
+    switch (sideLabel) {
+        case 'Հարսի':     return [250, 235, 233]; // նուրբ վարդագույն
+        case 'Փեսայի':    return [233, 241, 233]; // նուրբ կանաչ
+        case 'Ընդհանուր': return [248, 242, 230]; // նուրբ ոսկեգույն
+        default:          return [255, 255, 255];
+    }
+}
+function _lighten(rgb, amt) {
+    return rgb.map(v => Math.min(255, v + amt));
+}
+
+/**
+ * exportToPDF()
+ * Reads from WA.state only — no fetch.
+ *
+ * Փոփոխություններ.
+ * 1) Ավելացված է «Կողմ» սյունակ (Հարսի / Փեսայի / Ընդհանուր) յուրաքանչյուր
+ *    սեղանի կողքին։ (Emoji-ները՝ 👰🤵🤝 դիտմամբ ՉԵՆ օգտագործվում PDF-ում,
+ *    քանի որ ոչ մի բեռնված ֆոնտ emoji glyph-ներ չունի — կդրվեին դատարկ
+ *    քառակուսիներ։ Փոխարենն օգտագործում ենք պարզ հայերեն բառ։)
+ * 2) Շատ ավելի սահմանափակ չափսեր (fontSize 8, մինիմալ padding, հանված
+ *    հին դատարկ բացատ-տողերը) → մոտ 1.8–2x ավելի շատ հյուր մեկ էջում։
+ * 3) Նուրբ գունային շերտավորում ըստ կողմի՝ փոխարինում է հին բացատ-տողին
+ *    որպես սեղանների միջև տեսողական անջատիչ։
+ */
+async function exportToPDF() {
+    const tables     = [...WA.state.allTables].sort((a, b) => parseInt(a.table_number) - parseInt(b.table_number));
     const allMembers = WA.state.allGuests.flatMap(g => g.members);
+
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-    doc.setFont("Helvetica", "bold"); doc.setFontSize(18);
-    doc.text("HURERI NSTECMAN CUCAK", 14, 15);
+
+    await _loadArmenianFont(doc);
+
+    const titleText = 'Հյուրերի նստեցման ցուցակ';
+    doc.setFont('NotoArm', 'bold');
+    doc.setFontSize(16);
+    doc.text(titleText, 8, 12);
+
+    const sideLabelMap = { bride: 'Հարսի', groom: 'Փեսայի', mutual: 'Ընդհանուր' };
+
     const rows = [];
     tables.forEach(table => {
-        const here = allMembers.filter(m => m.table_id === table.id).sort((a, b) => (a.seat_index || 0) - (b.seat_index || 0));
-        if (!here.length) { rows.push([`Sg.${table.table_number}`, "Datark", ""]); }
-        else here.forEach((m, i) => { rows.push([i === 0 ? `Seghan ${table.table_number}` : "", `Ator ${m.seat_index != null ? m.seat_index + 1 : i + 1}`, m.first_name || "անանուն"]); });
-        rows.push(["", "", ""]);
+        const sideLabel = sideLabelMap[table.side || 'mutual'];
+        const here = allMembers
+            .filter(m => m.table_id === table.id)
+            .sort((a, b) => (a.seat_index || 0) - (b.seat_index || 0));
+
+        if (!here.length) {
+            rows.push([sideLabel, `Սեղան ${table.table_number}`, 'Դատարկ', '']);
+        } else {
+            here.forEach((m, i) => {
+                const seatNum = m.seat_index != null ? m.seat_index + 1 : i + 1;
+                rows.push([
+                    sideLabel,
+                    `Սեղան ${table.table_number}`,
+                    `Աթոռ ${seatNum}`,
+                    m.first_name || 'Անանուն',
+                ]);
+            });
+        }
+        // ✅ Հին «դատարկ տողը» հանված է՝ տեղ խնայելու համար.
+        // սեղանների միջև անջատիչը հիմա գունային շերտավորումն է (ստորև)։
     });
+
+    let lastTableLabel = null;
+    let bandToggle = false;
+
     doc.autoTable({
-        startY: 22, head: [['Seghan', 'Ator', 'Anun']], body: rows, theme: 'striped',
-        headStyles: { fillColor: [26, 22, 18], textColor: [232, 213, 176], fontStyle: 'bold' },
-        styles: { font: 'Helvetica', fontSize: 10, cellPadding: 3 },
-        columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 }, 1: { cellWidth: 30 } },
+        startY:      17,
+        margin:      { top: 10, left: 8, right: 8, bottom: 10 },
+        head:        [['Կողմ', 'Սեղան', 'Աթոռ', 'Անուն']],
+        body:        rows,
+        theme:       'grid',
+        headStyles:  { fillColor: [26, 22, 18], textColor: [232, 213, 176], fontStyle: 'bold', font: 'NotoArm', fontSize: 9 },
+        styles:      { fontSize: 8, cellPadding: { top: 1.2, right: 2, bottom: 1.2, left: 2 }, font: 'NotoArm' },
+        columnStyles: {
+            0: { fontStyle: 'bold', cellWidth: 22 },
+            1: { fontStyle: 'bold', cellWidth: 24 },
+            2: { cellWidth: 20 },
+        },
+        didParseCell: (data) => {
+            if (data.section === 'body') {
+                const rowRaw     = data.row.raw;
+                const sideLabel  = rowRaw[0];
+                const tableLabel = rowRaw[1];
+                if (tableLabel !== lastTableLabel) {
+                    bandToggle = !bandToggle;
+                    lastTableLabel = tableLabel;
+                }
+                const base = _sideFillColor(sideLabel);
+                data.cell.styles.fillColor = bandToggle ? base : _lighten(base, 6);
+            }
+            data.cell.text = [' '];
+        },
+        didDrawCell: (data) => {
+            _drawMixedCellText(doc, data);
+        },
     });
+
     doc.save(`wedding_${weddingId}.pdf`);
 }
 </script>

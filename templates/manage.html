@@ -52,6 +52,31 @@
         .modal-overlay { position: fixed; inset: 0; background: rgba(26,22,18,0.55); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 200; }
         .modal-overlay.open { display: flex; }
         #saveIndicator { transition: opacity 0.4s; }
+
+        /* 1. Էջի ընդհանուր ֆոն */
+body {
+    background-color: #EEF2E4 !important;
+}
+
+/* 2. Հեդեր և Ներքևի նավիգացիա */
+header, .bottom-nav {
+    background-color: #445E3F !important;
+}
+
+/* 3. Մուգ կոճակների փոխարինում (Բոլոր տեղերում, որտեղ bg-[#1a1612] էր) */
+.bg-\[\#1a1612\] {
+    background-color: #445E3F !important;
+    color: #FFFFFF !important;
+}
+
+/* 4. Ներքևի մենյուի ակտիվ վիճակի գույները */
+.bottom-nav-btn.active .nav-label {
+    color: #7D936C !important;
+}
+.bottom-nav-btn.active .nav-icon-wrap {
+    background-color: rgba(125, 147, 108, 0.2) !important;
+}
+
     </style>
 </head>
 <body class="bg-[#f7f3ee] text-[#1a1612] h-screen flex flex-col overflow-hidden">
@@ -59,7 +84,7 @@
 <!-- HEADER -->
 <header class="bg-[#1a1612] h-14 flex items-center justify-between px-6 flex-shrink-0 z-50">
     <div class="flex items-center gap-4">
-        
+
         <h1 id="weddingHeaderTitle" class="font-cormorant text-[#e8d5b0] text-xl font-semibold tracking-wide">Բեռնվում է...</h1>
     </div>
     <div id="saveIndicator" class="text-[11px] text-[#c9a96e] opacity-0">✓ Դիրքերը պահպանված են</div>
@@ -74,7 +99,7 @@
         </div>
         <!-- Add guest form -->
         <div class="p-3 border-b border-[#e8ddd0] bg-[#c9a96e]/[0.04] flex-shrink-0">
-            <input type="text" id="guestName" placeholder="Անուն / Ազգ."
+            <input type="text" id="guestName" placeholder="Անուն / Ազգանուն"
                 class="w-full px-3 py-1.5 mb-1.5 rounded-lg border border-[#e8ddd0] bg-white text-xs text-[#1a1612] placeholder-[#8c7b66] hover:border-[#c9a96e] focus:border-[#c9a96e] transition-colors">
             <div class="flex gap-1.5 mb-1.5">
                 <input type="number" id="guestCount" value="1" min="1"
@@ -90,20 +115,22 @@
         </div>
         <!-- Filter pills -->
         <div class="flex gap-1.5 mb-0 bg-[#c9a96e]/[0.04] p-1 border-b border-[#e8ddd0]">
-            <button onclick="filterMainGuests('all')"   id="btnMainFilter-all"   class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg transition-all bg-[#1a1612] text-[#e8d5b0] shadow-sm">Բոլ.</button>
-            <button onclick="filterMainGuests('bride')" id="btnMainFilter-bride" class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] hover:bg-[#f7f3ee] transition-all">👰 Հ.</button>
-            <button onclick="filterMainGuests('groom')" id="btnMainFilter-groom" class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] hover:bg-[#f7f3ee] transition-all">🤵 Փ.</button>
+            <button onclick="filterMainGuests('all')"   id="btnMainFilter-all"   class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg transition-all bg-[#1a1612] text-[#e8d5b0] shadow-sm">Բոլորը</button>
+            <button onclick="filterMainGuests('bride')" id="btnMainFilter-bride" class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] hover:bg-[#f7f3ee] transition-all">👰 Հարս</button>
+            <button onclick="filterMainGuests('groom')" id="btnMainFilter-groom" class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] hover:bg-[#f7f3ee] transition-all">🤵 Փեսա</button>
         </div>
         <!-- Merge bar -->
         <div id="mergeBar" class="hidden px-3 py-2 bg-[#c4736a]/10 border-b border-[#c4736a]/20 flex-shrink-0">
-            <button onclick="mergeSelectedGuests()" class="w-full py-1.5 bg-[#c4736a] text-white rounded-lg text-xs font-semibold hover:bg-[#b06059] transition-colors">
-                🧩 Միավ. ընտրվածները
+            <button onclick="mergeSelectedGuests()" class="w-full py-1.5 bg-[#445E3F] text-white rounded-lg text-xs font-semibold hover:bg-[#445E3F] transition-colors">
+                Միավորել ընտրվածները
             </button>
         </div>
         <div id="guestsContainer" class="flex-1 overflow-y-auto p-2.5">
             <p class="text-center text-[#8c7b66] text-xs italic py-6">Բեռնվում է...</p>
         </div>
     </div>
+
+
 
     <!-- CENTER: Hall -->
     <div class="relative overflow-hidden bg-[#fdfaf6]">
@@ -113,25 +140,25 @@
             <div class="inline-block relative">
                 <button onclick="toggleTableMenu(event)" id="tableMenuBtn"
                     class="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm border border-[#e8ddd0] rounded-xl text-xs font-semibold text-[#1a1612] shadow-sm hover:border-[#c9a96e] hover:bg-white transition-all">
-                    ➕ Ավ. Սեղան <span class="text-[9px] text-[#8c7b66] transition-transform" id="menuArrow">▼</span>
+                    ➕ Ավեցնել Սեղան <span class="text-[9px] text-[#8c7b66] transition-transform" id="menuArrow">▼</span>
                 </button>
                 <div id="tableDropdownMenu" class="hidden absolute left-0 mt-1.5 w-44 rounded-xl bg-white border border-[#e8ddd0] shadow-xl z-40 p-1 space-y-0.5">
                     <button onclick="triggerMenuAction('round')"            class="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#5c4f3d] hover:bg-[#c9a96e]/10 rounded-lg transition-colors text-left"><span class="w-3.5 h-3.5 rounded-full border border-[#1a1612]/30 bg-[#e8e0d4] inline-block"></span> Կլոր</button>
-                    <button onclick="triggerMenuAction('rectangle')"        class="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#5c4f3d] hover:bg-[#c9a96e]/10 rounded-lg transition-colors text-left"><span class="w-4 h-2.5 rounded-sm border border-[#1a1612]/30 bg-[#e8e0d4] inline-block"></span> Ուղղ.</button>
-                    <button onclick="triggerMenuAction('double_rectangle')" class="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#5c4f3d] hover:bg-[#c9a96e]/10 rounded-lg transition-colors text-left"><span class="w-5 h-2.5 rounded-sm border border-[#1a1612]/30 bg-[#e8e0d4] inline-block"></span> Կրկ. Ուղղ.</button>
+                    <button onclick="triggerMenuAction('rectangle')"        class="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#5c4f3d] hover:bg-[#c9a96e]/10 rounded-lg transition-colors text-left"><span class="w-4 h-2.5 rounded-sm border border-[#1a1612]/30 bg-[#e8e0d4] inline-block"></span> Ուղղանկյուն</button>
+                    <button onclick="triggerMenuAction('double_rectangle')" class="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#5c4f3d] hover:bg-[#c9a96e]/10 rounded-lg transition-colors text-left"><span class="w-5 h-2.5 rounded-sm border border-[#1a1612]/30 bg-[#e8e0d4] inline-block"></span> Կրկնակի</button>
                     <div class="h-px bg-[#f0eae2] my-1 mx-1"></div>
-                    <button onclick="triggerMenuAction('presidium')"        class="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#8a6c30] hover:bg-[#c9a96e]/15 rounded-lg transition-colors text-left"><span class="text-xs">👑</span> Պրեզ.</button>
+                    <button onclick="triggerMenuAction('presidium')"        class="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#8a6c30] hover:bg-[#c9a96e]/15 rounded-lg transition-colors text-left"><span class="text-xs">👑</span> Պրեզիդիում</button>
                 </div>
             </div>
             <!-- Hall side filter -->
             <div class="flex gap-1 bg-white/90 backdrop-blur-sm border border-[#e8ddd0] rounded-xl p-1 shadow-sm">
-                <button onclick="filterHall('all')"    id="hf-all"    class="hf-pill px-3 py-1.5 text-[11px] font-semibold rounded-lg bg-[#1a1612] text-[#e8d5b0] transition-all">Բոլ.</button>
+                <button onclick="filterHall('all')"    id="hf-all"    class="hf-pill px-3 py-1.5 text-[11px] font-semibold rounded-lg bg-[#1a1612] text-[#e8d5b0] transition-all">Բոլորը</button>
                 <button onclick="filterHall('bride')"  id="hf-bride"  class="hf-pill px-3 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] hover:bg-[#f7f3ee] transition-all">👰</button>
                 <button onclick="filterHall('groom')"  id="hf-groom"  class="hf-pill px-3 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] hover:bg-[#f7f3ee] transition-all">🤵</button>
                 <button onclick="filterHall('mutual')" id="hf-mutual" class="hf-pill px-3 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] hover:bg-[#f7f3ee] transition-all">🤝</button>
             </div>
             <button onclick="exportToPDF()"      class="flex items-center gap-2 bg-[#7a9e7e] hover:bg-[#688a6c] text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-sm transition-all">🖨️ PDF</button>
-            <button onclick="saveAllPositions()" class="flex items-center gap-2 bg-[#c9a96e] hover:bg-[#b8935a] text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-sm transition-all">💾 Պահ.</button>
+            <button onclick="saveAllPositions()" class="flex items-center gap-2 bg-[#7a9e7e] hover:bg-[#688a6c] text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-sm transition-all">💾 Պահպանել</button>
         </div>
         <!-- Zoom controls -->
         <div class="absolute right-3 top-3 z-30 flex flex-col gap-1">
@@ -150,9 +177,9 @@
             <div class="font-cormorant text-base font-semibold text-[#1a1612]">Չնստեցվածներ</div>
             <div id="unseatedSummary" class="text-[10px] text-[#8c7b66] mt-0.5">Բեռնվում է...</div>
             <div class="flex gap-1.5 my-3 bg-[#c9a96e]/[0.04] p-1 rounded-xl border border-[#e8ddd0]">
-                <button onclick="filterUnseatedMembers('all')"   id="btnUnseatedFilter-all"   class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg transition-all bg-[#1a1612] text-[#e8d5b0] shadow-sm">Բոլ.</button>
-                <button onclick="filterUnseatedMembers('bride')" id="btnUnseatedFilter-bride" class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] hover:bg-[#f7f3ee] transition-all">👰 Հ.</button>
-                <button onclick="filterUnseatedMembers('groom')" id="btnUnseatedFilter-groom" class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] hover:bg-[#f7f3ee] transition-all">🤵 Փ.</button>
+                <button onclick="filterUnseatedMembers('all')"   id="btnUnseatedFilter-all"   class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg transition-all bg-[#1a1612] text-[#e8d5b0] shadow-sm">Բոլորը</button>
+                <button onclick="filterUnseatedMembers('bride')" id="btnUnseatedFilter-bride" class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] hover:bg-[#f7f3ee] transition-all">👰 Հարս</button>
+                <button onclick="filterUnseatedMembers('groom')" id="btnUnseatedFilter-groom" class="flex-1 py-1.5 text-[11px] font-semibold rounded-lg text-[#5c4f3d] hover:bg-[#f7f3ee] transition-all">🤵 Փեսա</button>
             </div>
         </div>
         <div id="unseatedContainer" class="flex-1 overflow-y-auto p-2.5">
@@ -172,20 +199,20 @@
         </div>
         <div class="p-5 space-y-4">
             <div>
-                <label class="block text-[10px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-1.5">Համ.</label>
+                <label class="block text-[10px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-1.5">Համար</label>
                 <input id="newTableNumber" type="text" placeholder="Օր.՝ 1, A, VIP..."
                     class="w-full px-3 py-2 rounded-lg border border-[#e8ddd0] bg-white text-sm focus:border-[#c9a96e] transition-colors">
             </div>
             <div>
                 <label class="block text-[10px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-1.5">Կողմ</label>
                 <div class="flex gap-2">
-                    <button onclick="selectNewTableSide('bride')"  id="nts-bride"  class="nts-btn flex-1 py-1.5 rounded-lg border text-xs font-semibold transition-all border-[#e8ddd0] text-[#5c4f3d]">👰 Հ.</button>
-                    <button onclick="selectNewTableSide('groom')"  id="nts-groom"  class="nts-btn flex-1 py-1.5 rounded-lg border text-xs font-semibold transition-all border-[#e8ddd0] text-[#5c4f3d]">🤵 Փ.</button>
+                    <button onclick="selectNewTableSide('bride')"  id="nts-bride"  class="nts-btn flex-1 py-1.5 rounded-lg border text-xs font-semibold transition-all border-[#e8ddd0] text-[#5c4f3d]">👰 Հարս</button>
+                    <button onclick="selectNewTableSide('groom')"  id="nts-groom"  class="nts-btn flex-1 py-1.5 rounded-lg border text-xs font-semibold transition-all border-[#e8ddd0] text-[#5c4f3d]">🤵 Փեսա</button>
                     <button onclick="selectNewTableSide('mutual')" id="nts-mutual" class="nts-btn flex-1 py-1.5 rounded-lg border-2 border-[#c9a96e] text-xs font-semibold bg-[#c9a96e]/10 text-[#8a6c30] transition-all">🤝</button>
                 </div>
             </div>
             <div>
-                <label class="block text-[10px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-1.5">Աթ. Քան.</label>
+                <label class="block text-[10px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-1.5">Աթոռների քանակ</label>
                 <div class="flex items-center gap-3 bg-[#c9a96e]/[0.06] rounded-xl border border-[#e8ddd0] px-4 py-3">
                     <button onclick="changeNewCapacity(-1)" class="w-8 h-8 rounded-full border border-[#e8ddd0] bg-white text-[#1a1612] flex items-center justify-center hover:border-[#c9a96e] transition-all flex-shrink-0">−</button>
                     <span id="newCapacityDisplay" class="font-cormorant text-3xl font-bold text-[#1a1612] flex-1 text-center">10</span>
@@ -193,7 +220,7 @@
                 </div>
                 <p id="addTableCatNote" class="text-[10px] text-[#8c7b66] mt-1.5 text-center"></p>
             </div>
-            <button onclick="confirmAddTable()" class="w-full py-2.5 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold hover:bg-[#3d3228] transition-colors">Ստ. ✓</button>
+            <button onclick="confirmAddTable()" class="w-full py-2.5 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold hover:bg-[#3d3228] transition-colors">✓</button>
         </div>
     </div>
 </div>
@@ -213,7 +240,7 @@
                 <button onclick="changeSeatCount(1)"  class="w-8 h-8 rounded-full border border-[#e8ddd0] bg-white text-[#1a1612] flex items-center justify-center hover:border-[#c9a96e] transition-all flex-shrink-0">+</button>
             </div>
             <p id="seatCountMax" class="text-[10px] text-[#8c7b66] text-center mb-4"></p>
-            <button onclick="confirmSeatCount()" class="w-full py-2.5 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold hover:bg-[#3d3228] transition-colors">Ընտ. Սեղ. ➔</button>
+            <button onclick="confirmSeatCount()" class="w-full py-2.5 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold hover:bg-[#3d3228] transition-colors">Ընտրել Սեղան ➔</button>
         </div>
     </div>
 </div>
@@ -222,7 +249,7 @@
 <div class="modal-overlay" id="tablePickerModal" onclick="closeModal('tablePickerModal')">
     <div class="bg-[#fdfaf6] rounded-2xl w-80 max-h-[480px] flex flex-col shadow-2xl border border-[#e8ddd0] overflow-hidden" onclick="event.stopPropagation()">
         <div class="px-5 py-4 border-b border-[#e8ddd0] flex justify-between items-center flex-shrink-0">
-            <span id="tablePickerTitle" class="font-cormorant text-lg font-semibold">Ընտ. սեղ.</span>
+            <span id="tablePickerTitle" class="font-cormorant text-lg font-semibold">Ընտրել սեղան</span>
             <button onclick="closeModal('tablePickerModal')" class="text-[#8c7b66] hover:text-[#1a1612] text-lg">✕</button>
         </div>
         <div id="tablePickerList" class="flex-1 overflow-y-auto p-3 space-y-2"></div>
@@ -233,7 +260,7 @@
 <div class="modal-overlay" id="guestPickerModal" onclick="closeModal('guestPickerModal')">
     <div class="bg-[#fdfaf6] rounded-2xl w-80 max-h-[480px] flex flex-col shadow-2xl border border-[#e8ddd0] overflow-hidden" onclick="event.stopPropagation()">
         <div class="px-5 py-4 border-b border-[#e8ddd0] flex justify-between items-center flex-shrink-0">
-            <span class="font-cormorant text-lg font-semibold">Ընտ. հյուր</span>
+            <span class="font-cormorant text-lg font-semibold">Ընտրել հյուր</span>
             <button onclick="closeModal('guestPickerModal')" class="text-[#8c7b66] hover:text-[#1a1612] text-lg">✕</button>
         </div>
         <div id="guestPickerList" class="flex-1 overflow-y-auto p-3 space-y-1.5"></div>
@@ -244,7 +271,7 @@
 <div class="modal-overlay" id="tableSheetModal" onclick="closeModal('tableSheetModal')">
     <div class="bg-[#fdfaf6] rounded-2xl w-96 max-h-[520px] flex flex-col shadow-2xl border border-[#e8ddd0] overflow-hidden" onclick="event.stopPropagation()">
         <div class="px-5 py-4 border-b border-[#e8ddd0] flex justify-between items-center flex-shrink-0">
-            <span id="tableSheetTitle" class="font-cormorant text-lg font-semibold">Սեղ. Թերթ.</span>
+            <span id="tableSheetTitle" class="font-cormorant text-lg font-semibold">Թերթիկ</span>
             <button onclick="closeModal('tableSheetModal')" class="text-[#8c7b66] hover:text-[#1a1612] text-lg">✕</button>
         </div>
         <div id="tableSheetBody" class="flex-1 overflow-y-auto p-4 space-y-2"></div>
@@ -255,7 +282,7 @@
 <div class="modal-overlay" id="editCapacityModal" onclick="closeModal('editCapacityModal')">
     <div class="bg-[#fdfaf6] rounded-2xl w-80 shadow-2xl border border-[#e8ddd0] overflow-hidden" onclick="event.stopPropagation()">
         <div class="px-5 py-4 border-b border-[#e8ddd0] flex justify-between items-center">
-            <span class="font-cormorant text-lg font-semibold">Փոխ. տեղերի Քան.</span>
+            <span class="font-cormorant text-lg font-semibold">Փոխել տեղերի քանակը</span>
             <button onclick="closeModal('editCapacityModal')" class="text-[#8c7b66] hover:text-[#1a1612] text-lg">✕</button>
         </div>
         <div class="p-5 space-y-4">
@@ -264,7 +291,7 @@
                 <span id="editCapacityDisplay" class="font-cormorant text-3xl font-bold text-[#1a1612] flex-1 text-center">12</span>
                 <button onclick="changeEditCapacity(1)"  class="w-8 h-8 rounded-full border border-[#e8ddd0] bg-white text-[#1a1612] flex items-center justify-center hover:border-[#c9a96e] transition-all flex-shrink-0">+</button>
             </div>
-            <button onclick="confirmEditCapacity()" class="w-full py-2.5 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold hover:bg-[#3d3228] transition-colors">Պահ. ✓</button>
+            <button onclick="confirmEditCapacity()" class="w-full py-2.5 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold hover:bg-[#3d3228] transition-colors">Պահպանել ✓</button>
         </div>
     </div>
 </div>
@@ -274,11 +301,11 @@
     <div class="bg-[#fdfaf6] rounded-2xl w-72 shadow-2xl border border-[#e8ddd0] overflow-hidden" onclick="event.stopPropagation()">
         <div class="p-6 text-center">
             <div class="w-12 h-12 rounded-full bg-[#c4736a]/10 text-[#c4736a] flex items-center justify-center text-xl mx-auto mb-3">🗑</div>
-            <h3 class="font-cormorant text-base font-bold mb-1">Հաստ. ջնջ.?</h3>
+            <h3 class="font-cormorant text-base font-bold mb-1">Հաստատ ջնջել?</h3>
             <p id="confirmDeleteText" class="text-[11px] text-[#8c7b66] mb-5">Անդառնալի է։</p>
             <div class="flex gap-2">
-                <button onclick="closeModal('confirmDeleteModal')" class="flex-1 py-2 rounded-lg border border-[#e8ddd0] text-xs font-semibold text-[#5c4f3d] bg-white hover:bg-[#f7f3ee]">Չեղ.</button>
-                <button id="executeDeleteBtn" class="flex-1 py-2 rounded-lg bg-[#c4736a] text-white text-xs font-semibold hover:bg-[#b06059]">Ջնջ.</button>
+                <button onclick="closeModal('confirmDeleteModal')" class="flex-1 py-2 rounded-lg border border-[#e8ddd0] text-xs font-semibold text-[#5c4f3d] bg-white hover:bg-[#f7f3ee]">Չեղարկել</button>
+                <button id="executeDeleteBtn" class="flex-1 py-2 rounded-lg bg-[#445E3F] text-white text-xs font-semibold hover:bg-[#445E3F]">Ջնջել</button>
             </div>
         </div>
     </div>
@@ -288,13 +315,33 @@
 <div class="modal-overlay" id="renameMemberModal" onclick="closeModal('renameMemberModal')">
     <div class="bg-[#fdfaf6] rounded-2xl w-80 shadow-2xl border border-[#e8ddd0] overflow-hidden" onclick="event.stopPropagation()">
         <div class="px-5 py-4 border-b border-[#e8ddd0] flex justify-between items-center">
-            <span class="font-cormorant text-lg font-semibold">Փ. Անուն</span>
+            <span class="font-cormorant text-lg font-semibold">Փոխել Անուն</span>
             <button onclick="closeModal('renameMemberModal')" class="text-[#8c7b66] hover:text-[#1a1612] text-lg">✕</button>
         </div>
         <div class="p-5 space-y-4">
             <input id="renameMemberInput" type="text"
                 class="w-full px-3 py-2 rounded-lg border border-[#e8ddd0] bg-white text-sm focus:border-[#c9a96e] transition-colors">
-            <button id="updateConfirmBtn" class="w-full py-2.5 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold hover:bg-[#3d3228] transition-colors">Թ. ✓</button>
+            <button id="updateConfirmBtn" class="w-full py-2.5 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold hover:bg-[#3d3228] transition-colors">Թարմացնել ✓</button>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Merge guests -->
+<div class="modal-overlay" id="mergeGuestsModal" onclick="closeModal('mergeGuestsModal')">
+    <div class="bg-[#fdfaf6] rounded-2xl w-80 shadow-2xl border border-[#e8ddd0] overflow-hidden" onclick="event.stopPropagation()">
+        <div class="px-5 py-4 border-b border-[#e8ddd0] flex justify-between items-center">
+            <span class="font-cormorant text-lg font-semibold">Միավորել հյուրերին</span>
+            <button onclick="closeModal('mergeGuestsModal')" class="text-[#8c7b66] hover:text-[#1a1612] text-lg">✕</button>
+        </div>
+        <div class="p-5 space-y-4">
+            <div>
+                <label class="block text-[10px] font-semibold text-[#8c7b66] uppercase tracking-wider mb-1.5">Նոր ընդհանուր անուն</label>
+                <input id="mergeGuestsInput" type="text" placeholder="Օր.՝ Մարգարյանների ընտանիք"
+                    class="w-full px-3 py-2 rounded-lg border border-[#e8ddd0] bg-white text-sm focus:border-[#c9a96e] transition-colors">
+            </div>
+            <button onclick="confirmMergeGuests()" class="w-full py-2.5 bg-[#1a1612] text-[#e8d5b0] rounded-xl text-sm font-semibold hover:bg-[#3d3228] transition-colors">Միավորել ✓</button>
         </div>
     </div>
 </div>
@@ -308,10 +355,10 @@
         </div>
         <div class="p-4 space-y-2">
             <button id="chairActionRenameBtn" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border border-[#e8ddd0] bg-white text-sm font-medium text-[#1a1612] hover:border-[#c9a96e] hover:bg-[#c9a96e]/5 transition-all text-left">
-                <span>✏️</span> Փ. Անուն
+                <span>✏️</span> Փոխել անուն
             </button>
             <button id="chairActionUnseatBtn" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border border-[#e8ddd0] bg-white text-sm font-medium text-[#c4736a] hover:border-[#c4736a] hover:bg-[#c4736a]/5 transition-all text-left">
-                <span>❌</span> Հ. Սեղ.-ից
+                <span>❌</span> Հանել Սեղանից
             </button>
         </div>
     </div>

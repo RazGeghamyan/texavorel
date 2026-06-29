@@ -20,10 +20,10 @@ function renderUnseatedPanel() {
 
     const totalMembers = State.allGuests.reduce((s, g) => s + g.total_count, 0);
     document.getElementById('unseatedSummary').innerText =
-        `${totalMembers - State.unseatedMembers.length} / ${totalMembers} նստ.`;
+        `${totalMembers - State.unseatedMembers.length} / ${totalMembers} նստեցնել`;
 
     if (!State.allGuests.length) {
-        container.innerHTML = '<p class="text-center text-[#8c7b66] text-xs italic py-6">Ավ. հյուրեր ←</p>';
+        container.innerHTML = '<p class="text-center text-[#8c7b66] text-xs italic py-6">Ավելացնել հյուրեր ←</p>';
         return;
     }
 
@@ -43,21 +43,30 @@ function renderUnseatedPanel() {
             : uc === total
                 ? 'bg-[#c4736a]/10 text-[#c4736a]'
                 : 'bg-[#c9a96e]/15 text-[#8a6c30]';
-        const pillText = uc === 0 ? '✓ Բոլ.' : uc === total ? `${uc} Չ.Ն.` : `${uc}/${total}`;
+        const pillText = uc === 0 ? '✓ Բոլորը' : uc === total ? `${uc} չնստեցված` : `${uc}/${total}`;
 
         const card   = document.createElement('div');
         card.className = 'bg-white rounded-xl border border-[#e8ddd0] mb-2 overflow-hidden hover:shadow-sm transition-shadow';
 
         const isOpen = State.openedGroupIds.has(guest.id);
         const header = document.createElement('div');
-        header.className = 'flex items-center gap-2 px-3 py-2.5 cursor-pointer';
+
+        // 1. Փոխում ենք ընդհանուր դասերը՝ flex-col (տողատում), իսկ padding-ը մի փոքր օպտիմալացնում ենք
+        header.className = 'flex flex-col gap-2 px-3 py-2.5 cursor-pointer';
+
+        // 2. Կառուցվածքը բաժանում ենք 2 տողի. վերևում անունն է, ներքևում՝ կոճակներն ու status-ը
         header.innerHTML = `
-            <span class="text-xs font-semibold text-[#1a1612] flex-1 truncate">${guest.display_name}</span>
-            <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${pillCls}">${pillText}</span>
-            <button onclick="event.stopPropagation();openSeatCountModal(${guest.id})" ${uc === 0 ? 'disabled' : ''}
-                class="flex-shrink-0 text-[11px] font-semibold px-2 py-1 rounded-md transition-colors ${uc === 0 ? 'opacity-30 cursor-not-allowed bg-[#f7f3ee] text-[#8c7b66]' : 'bg-[#1a1612] text-[#e8d5b0] hover:bg-[#3d3228]'}">
-                Նստ. ➔
-            </button>`;
+            <!-- Վերևի տող. Միայն անունը (այլևս չի խցկվի) -->
+            <span class="text-xs font-semibold text-[#1a1612] block break-words">${guest.display_name}</span>
+
+            <!-- Ներքևի տող. Կարգավիճակի Pill և Նստեցնել կոճակ -->
+            <div class="flex items-center justify-between gap-2 mt-0.5">
+                <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${pillCls}">${pillText}</span>
+                <button onclick="event.stopPropagation();openSeatCountModal(${guest.id})" ${uc === 0 ? 'disabled' : ''}
+                    class="flex-shrink-0 text-[11px] font-semibold px-2 py-1 rounded-md transition-colors ${uc === 0 ? 'opacity-30 cursor-not-allowed bg-[#f7f3ee] text-[#8c7b66]' : 'bg-[#445E3F] text-white hover:bg-[#32472e]' /** Գույնը համապատասխանեցված է քո CSS-ին */}">
+                    Նստեցնել ➔
+                </button>
+            </div>`;
 
         const expandDiv = document.createElement('div');
         expandDiv.className = `border-t border-[#f7f3ee] ${isOpen ? '' : 'hidden'}`;
@@ -87,7 +96,7 @@ function renderUnseatedPanel() {
             row.innerHTML = `
                 <span class="flex-1 ${isSeated ? 'text-[#7a9e7e]' : 'text-[#5c4f3d]'}">${m.first_name || 'Անանուն'}</span>
                 ${isSeated
-                    ? `<span class="text-[9px] bg-[#7a9e7e]/10 text-[#7a9e7e] px-1.5 py-0.5 rounded-full">Սեղ.${seatedTableNo}</span>
+                    ? `<span class="text-[9px] bg-[#7a9e7e]/10 text-[#7a9e7e] px-1.5 py-0.5 rounded-full">Սեղան${seatedTableNo}</span>
                        <button onclick="unseatMemberAction(${m.id})" class="text-[#8c7b66] hover:text-[#c4736a] text-[10px] transition-colors">✕</button>`
                     : '<span class="text-[9px] text-[#c8bfb2]">⋮⋮ drag</span>'
                 }`;
@@ -108,7 +117,7 @@ function renderUnseatedPanel() {
 
     container.innerHTML = '';
     if (!hasVisible) {
-        container.innerHTML = '<p class="text-center text-[#8c7b66] text-xs italic py-6">Կողմից Չ.Ն. չկան 🍃</p>';
+        container.innerHTML = '<p class="text-center text-[#8c7b66] text-xs italic py-6">չնստեցվածներ չկան</p>';
     } else {
         container.appendChild(fragment);
     }
@@ -145,15 +154,15 @@ function openSeatCountModal(guestId) {
 
     const unseatedIds   = new Set(State.unseatedMembers.map(m => m.id));
     const guestUnseated = guest.members.filter(m => unseatedIds.has(m.id));
-    if (!guestUnseated.length) { alert('Բոլ. արդ. նստ.'); return; }
+    if (!guestUnseated.length) { alert('Բոլորը արդեն նստեցված են'); return; }
 
     State.pendingSeatGuest = { guestId, display_name: guest.display_name, unseatedMembers: guestUnseated };
     State.pendingSeatCount = guestUnseated.length;
 
     document.getElementById('seatCountTitle').innerText   = guest.display_name;
     document.getElementById('seatCountDisplay').innerText = State.pendingSeatCount;
-    document.getElementById('seatCountMax').innerText     = `${guestUnseated.length} հոգի սպ.`;
-    document.getElementById('seatCountHint').innerText    = 'Ընտրեք՝ քանիսին նստ.';
+    document.getElementById('seatCountMax').innerText     = `${guestUnseated.length} հոգի`;
+    document.getElementById('seatCountHint').innerText    = 'Ընտրեք՝ քանիսին նստեցնել';
     openModal('seatCountModal');
 }
 
@@ -180,7 +189,7 @@ function openTablePickerModal(guestInfo, count) {
     list.innerHTML = '';
 
     if (!State.allTables.length) {
-        list.innerHTML = '<p class="text-center text-[#8c7b66] text-sm italic py-6">Սեղ. չկան</p>';
+        list.innerHTML = '<p class="text-center text-[#8c7b66] text-sm italic py-6">Սեղաններ չկան</p>';
         openModal('tablePickerModal');
         return;
     }
@@ -202,7 +211,7 @@ function openTablePickerModal(guestInfo, count) {
                 : 'border-[#f0eae2] bg-[#faf8f5] opacity-40 cursor-not-allowed'}`;
         btn.innerHTML = `
             <div class="flex justify-between items-center mb-1.5">
-                <span class="text-xs font-semibold text-[#1a1612]">Սեղ. ${table.table_number} ${sideBadge}</span>
+                <span class="text-xs font-semibold text-[#1a1612]">Սեղան ${table.table_number} ${sideBadge}</span>
                 <span class="text-[10px] text-[#8c7b66]">${TABLE_DEFAULTS.label[table.category] || ''}</span>
             </div>
             <div class="flex items-center gap-2">
@@ -295,7 +304,7 @@ function openGuestPicker(tableId) {
     });
 
     if (!hasGroups) {
-        list.innerHTML = '<p class="text-center text-[#8c7b66] text-sm italic py-6">Չնստ. հյուրեր չկան 🎉</p>';
+        list.innerHTML = '<p class="text-center text-[#8c7b66] text-sm italic py-6">Չնստեցված հյուրեր չկան 🎉</p>';
     }
     openModal('guestPickerModal');
 }

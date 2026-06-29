@@ -105,7 +105,7 @@ function patchState(changes) {
     let guestsChanged = false;
     let tablesChanged = false;
 
-    // ── Guests ────────────────────────────────────────────────────────────
+    // ── Guests ──
     if (changes.guests !== undefined) {
         State.allGuests = changes.guests;
         guestsChanged = true;
@@ -117,13 +117,10 @@ function patchState(changes) {
     if (changes.guestRemoved !== undefined) {
         State.allGuests = State.allGuests.filter(g => g.id !== changes.guestRemoved);
         guestsChanged = true;
-        // ✅ ՈՒՂՂՈՒՄ. ջնջված հրավերի անդամները կարող էին նստած լինել սեղանի մոտ —
-        // առանց այս դրոշակի, սրահը (հյուրասենյակը) չէր վերա-ռենդերվում, և աթոռները
-        // տեսողականորեն մնում էին զբաղված մինչև էջի ռեֆրեշ։
         tablesChanged = true;
     }
 
-    // ── Tables ────────────────────────────────────────────────────────────
+    // ── Tables ──
     if (changes.tables !== undefined) {
         State.allTables = changes.tables;
         tablesChanged = true;
@@ -134,26 +131,23 @@ function patchState(changes) {
     }
     if (changes.tableRemoved !== undefined) {
         const removedTableId = parseInt(changes.tableRemoved);
-
-        // 1. Հեռացնում ենք սեղանը State-ից
         State.allTables = State.allTables.filter(t => t.id !== removedTableId);
+        if (State.tablePositions[removedTableId]) delete State.tablePositions[removedTableId];
 
-        // 2. Մաքրում ենք նաև սեղանի դիրքը հիշողությունից ✨
-        if (State.tablePositions[removedTableId]) {
-            delete State.tablePositions[removedTableId];
-        }
+        // ✅ Only rebuild the guest(s) that actually had a member at this table
+        State.allGuests = State.allGuests.map(g => {
+            const affected = g.members.some(m => m.table_id === removedTableId);
+            if (!affected) return g; // ← same reference, no re-render needed
+            return {
+                ...g,
+                members: g.members.map(m =>
+                    m.table_id === removedTableId ? { ...m, table_id: null, seat_index: null } : m
+                ),
+            };
+        });
 
-        // 3. 🔄 Ազատում ենք հյուրերին State-ի մեջ (սարքում ենք table_id-ն null)
-        State.allGuests = State.allGuests.map(g => ({
-            ...g,
-            members: g.members.map(m =>
-                m.table_id === removedTableId ? { ...m, table_id: null, seat_index: null } : m
-            )
-        }));
-
-        // 4. ✨ Ակտիվացնում ենք երկու դրոշակներն էլ
         tablesChanged = true;
-        guestsChanged = true; // 🔥 Սա ավտոմատ կվերա-ռենդեր անի թե՛ սրահը, թե՛ չնստածների պանելը
+        guestsChanged = true;
     }
     if (changes.tableUpdated !== undefined) {
         State.allTables = State.allTables.map(t =>
@@ -162,55 +156,54 @@ function patchState(changes) {
         tablesChanged = true;
     }
 
-    // ── Member mutations (patch in-place inside allGuests) ────────────────
+    // ── Member mutations — touch ONLY the guest that owns the member ──
     if (changes.memberSeated !== undefined) {
         const { memberId, tableId, seatIndex } = changes.memberSeated;
-        State.allGuests = State.allGuests.map(g => ({
-            ...g,
-            members: g.members.map(m =>
-                m.id === memberId ? { ...m, table_id: tableId, seat_index: seatIndex } : m
-            ),
-        }));
+        State.allGuests = State.allGuests.map(g => {
+            if (!g.members.some(m => m.id === memberId)) return g; // ✅ same ref
+            return {
+                ...g,
+                members: g.members.map(m =>
+                    m.id === memberId ? { ...m, table_id: tableId, seat_index: seatIndex } : m
+                ),
+            };
+        });
         guestsChanged = true;
-        // Tables also visually change (chair gets occupied)
         tablesChanged = true;
     }
     if (changes.memberUnseated !== undefined) {
         const { memberId } = changes.memberUnseated;
-        State.allGuests = State.allGuests.map(g => ({
-            ...g,
-            members: g.members.map(m =>
-                m.id === memberId ? { ...m, table_id: null, seat_index: null } : m
-            ),
-        }));
+        State.allGuests = State.allGuests.map(g => {
+            if (!g.members.some(m => m.id === memberId)) return g; // ✅ same ref
+            return {
+                ...g,
+                members: g.members.map(m =>
+                    m.id === memberId ? { ...m, table_id: null, seat_index: null } : m
+                ),
+            };
+        });
         guestsChanged = true;
         tablesChanged = true;
     }
     if (changes.memberRenamed !== undefined) {
         const { memberId, firstName } = changes.memberRenamed;
-        State.allGuests = State.allGuests.map(g => ({
-            ...g,
-            members: g.members.map(m =>
-                m.id === memberId ? { ...m, first_name: firstName } : m
-            ),
-        }));
+        State.allGuests = State.allGuests.map(g => {
+            if (!g.members.some(m => m.id === memberId)) return g; // ✅ same ref
+            return {
+                ...g,
+                members: g.members.map(m =>
+                    m.id === memberId ? { ...m, first_name: firstName } : m
+                ),
+            };
+        });
         guestsChanged = true;
-        tablesChanged = true;  // chair label changes
+        tablesChanged = true;
     }
 
-    // ── Recompute derived state ───────────────────────────────────────────
     if (guestsChanged) _recomputeUnseated();
-
-    // ── Re-render only what changed ───────────────────────────────────────
-    if (guestsChanged) {
-        renderGuestsPanel();
-        renderUnseatedPanel();
-    }
-    if (tablesChanged) {
-        renderHall();
-    }
+    if (guestsChanged) { renderGuestsPanel(); renderUnseatedPanel(); }
+    if (tablesChanged) { renderHall(); }
 }
-
 // ── Full reload (initial load only) ──────────────────────────────────────────
 /**
  * updateAppState()

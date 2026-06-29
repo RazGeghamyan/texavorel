@@ -61,14 +61,14 @@ function openTableSheet(tableId) {
     );
     const seatedHere = allMembers.filter(m => m.table_id === tableId);
 
-    document.getElementById('tableSheetTitle').innerText = `Սեղ. ${table.table_number} — Թերթ. 📋`;
+    document.getElementById('tableSheetTitle').innerText = `Սեղան ${table.table_number} — Թերթիկ 📋`;
     const body = document.getElementById('tableSheetBody');
     body.innerHTML = '';
 
     // Summary row
     const summary = document.createElement('div');
     summary.style.cssText = 'font-size:11px;color:#8c7b66;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #e8ddd0;display:flex;justify-content:space-between;';
-    summary.innerHTML = `<span>${TABLE_DEFAULTS.label[table.category]} — ${table.capacity} տեղ</span><span>${seatedHere.length} / ${table.capacity} զբաղ.</span>`;
+    summary.innerHTML = `<span>${TABLE_DEFAULTS.label[table.category]} — ${table.capacity} տեղ</span><span>${seatedHere.length} / ${table.capacity} զբաղված է</span>`;
     body.appendChild(summary);
 
     // Seated rows
@@ -135,51 +135,196 @@ function sheetRemoveMember(memberId) {
 
 // ── PDF Export ────────────────────────────────────────────────────────────────
 
+// ── PDF Export ────────────────────────────────────────────────────────────────
+
+// Cache so the Armenian font is fetched only once per page session
+let _armenianFontBase64 = null;
+
+function _arrayBufferToBase64(buffer) {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary);
+}
+
+async function _loadArmenianFont(doc) {
+    if (!_armenianFontBase64) {
+        const res = await fetch('https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-armenian@latest/armenian-400-normal.ttf');
+        const buf = await res.arrayBuffer();
+        _armenianFontBase64 = _arrayBufferToBase64(buf);
+    }
+    doc.addFileToVFS('NotoSansArmenian.ttf', _armenianFontBase64);
+    doc.addFont('NotoSansArmenian.ttf', 'NotoArm', 'normal');
+    doc.addFont('NotoSansArmenian.ttf', 'NotoArm', 'bold');
+}
+
+/**
+ * ⚠️ ԽՆԴԻՐԻ ՊԱՏՃԱՌԸ.
+ * «NotoSansArmenian» ֆայլը՝ ՄԻԱՅՆ հայկական ենթաբազմություն է (Google/Noto-ի
+ * քաղաքականությամբ)՝ ՉՈՒՆԻ թվանշանների (0-9) ոչ էլ լատինատառ glyph-ներ։
+ * Այդ իսկ պատճառով «Սեղան 1»-ի «1»-ը անհետանում էր PDF-ում։
+ *
+ * ԼՈՒՑՈՒՄ. տեքստը բաժանում ենք հատվածների (runs)՝ հայկական vs ոչ-հայկական,
+ * և գծում ենք առանձին-առանձին՝ հայկականը NotoArm-ով, մնացածը (թվեր, լատին)՝
+ * ներկառուցված helvetica-ով, որը հենազուրկ ունի թվանշանների glyph-ները։
+ */
+function _splitRuns(text) {
+    const str = String(text == null ? '' : text);
+    const runs = [];
+    let current = '';
+    let currentIsArm = null;
+    for (const ch of str) {
+        const isArm = /[\u0530-\u058F]/.test(ch);
+        if (currentIsArm === null) {
+            current = ch;
+            currentIsArm = isArm;
+        } else if (isArm === currentIsArm) {
+            current += ch;
+        } else {
+            runs.push({ text: current, isArm: currentIsArm });
+            current = ch;
+            currentIsArm = isArm;
+        }
+    }
+    if (current) runs.push({ text: current, isArm: currentIsArm });
+    return runs;
+}
+
+/**
+ * Ինքնուրույն գծում է cell-ի տեքստը՝ հատված-հատված, ֆոնտը փոխելով
+ * հայկական/ոչ-հայկական հատվածների միջև։
+ */
+function _drawMixedCellText(doc, data) {
+    const raw = data.cell.raw;
+    if (raw === null || raw === undefined || raw === '') return;
+
+    const fontSize = data.cell.styles.fontSize || 8;
+    const isBold   = data.cell.styles.fontStyle === 'bold';
+    const padLeft  = data.cell.padding('left');
+
+    let x = data.cell.x + padLeft;
+    const fontSizeMm = fontSize / 72 * 25.4; // pt → mm
+    const y = data.cell.y + data.cell.height / 2 + fontSizeMm * 0.32;
+
+    doc.setFontSize(fontSize);
+    const c = data.cell.styles.textColor;
+
+    _splitRuns(raw).forEach(run => {
+        doc.setFont(run.isArm ? 'NotoArm' : 'helvetica', isBold ? 'bold' : 'normal');
+        if (Array.isArray(c)) doc.setTextColor(c[0], c[1], c[2]);
+
+        doc.text(run.text, x, y);
+        x += doc.getTextWidth(run.text);
+    });
+}
+
+/**
+ * Ֆոնի թույլ երանգ՝ ըստ սեղանի կողմի — փոխարինում է հին «դատարկ տող»
+ * անջատիչին, քանի որ պահում ենք էջի տարածքը հյուրերի համար։
+ */
+function _sideFillColor(sideLabel) {
+    switch (sideLabel) {
+        case 'Հարսի':     return [250, 235, 233]; // նուրբ վարդագույն
+        case 'Փեսայի':    return [233, 241, 233]; // նուրբ կանաչ
+        case 'Ընդհանուր': return [248, 242, 230]; // նուրբ ոսկեգույն
+        default:          return [255, 255, 255];
+    }
+}
+function _lighten(rgb, amt) {
+    return rgb.map(v => Math.min(255, v + amt));
+}
+
 /**
  * exportToPDF()
  * Reads from State.allTables + State.allGuests — no extra fetch.
+ *
+ * Փոփոխություններ.
+ * 1) Ավելացված է «Կողմ» սյունակ (Հարսի / Փեսայի / Ընդհանուր) յուրաքանչյուր
+ *    սեղանի կողքին։ (Emoji-ները՝ 👰🤵🤝 դիտմամբ ՉԵՆ օգտագործվում PDF-ում,
+ *    քանի որ ոչ մի բեռնված ֆոնտ emoji glyph-ներ չունի — կդրվեին դատարկ
+ *    քառակուսիներ։ Փոխարենն օգտագործում ենք պարզ հայերեն բառ։)
+ * 2) Շատ ավելի սահմանափակ չափսեր (fontSize 8, մինիմալ padding, հանված
+ *    հին դատարկ բացատ-տողերը) → մոտ 1.8–2x ավելի շատ հյուր մեկ էջում։
+ * 3) Նուրբ գունային շերտավորում ըստ կողմի՝ փոխարինում է հին բացատ-տողին
+ *    որպես սեղանների միջև տեսողական անջատիչ։
  */
-function exportToPDF() {
+async function exportToPDF() {
     const tables     = [...State.allTables].sort((a, b) => parseInt(a.table_number) - parseInt(b.table_number));
     const allMembers = State.allGuests.flatMap(g => g.members);
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-    doc.setFont('Helvetica', 'bold');
-    doc.setFontSize(18);
-    doc.text('HURERI NSTECMAN CUC AK', 14, 15);
+
+    await _loadArmenianFont(doc);
+
+    const titleText = 'Հյուրերի նստեցման ցուցակ';
+    doc.setFont('NotoArm', 'bold');
+    doc.setFontSize(16);
+    doc.text(titleText, 8, 12);
+
+    const sideLabelMap = { bride: 'Հարսի', groom: 'Փեսայի', mutual: 'Ընդհանուր' };
 
     const rows = [];
     tables.forEach(table => {
+        const sideLabel = sideLabelMap[table.side || 'mutual'];
         const here = allMembers
             .filter(m => m.table_id === table.id)
             .sort((a, b) => (a.seat_index || 0) - (b.seat_index || 0));
 
         if (!here.length) {
-            rows.push([`Sg. ${table.table_number}`, 'Datark', '']);
+            rows.push([sideLabel, `Սեղան ${table.table_number}`, 'Դատարկ', '']);
         } else {
-            here.forEach((m, i) => rows.push([
-                i === 0 ? `Seghan ${table.table_number}` : '',
-                `Ator ${m.seat_index != null ? m.seat_index + 1 : i + 1}`,
-                m.first_name || 'Ananun',
-            ]));
+            here.forEach((m, i) => {
+                const seatNum = m.seat_index != null ? m.seat_index + 1 : i + 1;
+                rows.push([
+                    sideLabel,
+                    `Սեղան ${table.table_number}`,
+                    `Աթոռ ${seatNum}`,
+                    m.first_name || 'Անանուն',
+                ]);
+            });
         }
-        rows.push(['', '', '']);
+        // ✅ Հին «դատարկ տողը» հանված է՝ տեղ խնայելու համար.
+        // սեղանների միջև անջատիչը հիմա գունային շերտավորումն է (ստորև)։
     });
 
+    let lastTableLabel = null;
+    let bandToggle = false;
+
     doc.autoTable({
-        startY:      22,
-        head:        [['Seghan', 'Ator', 'Anun']],
+        startY:      17,
+        margin:      { top: 10, left: 8, right: 8, bottom: 10 },
+        head:        [['Կողմ', 'Սեղան', 'Աթոռ', 'Անուն']],
         body:        rows,
-        theme:       'striped',
-        headStyles:  { fillColor: [26, 22, 18], textColor: [232, 213, 176], fontStyle: 'bold' },
-        styles:      { font: 'Helvetica', fontSize: 10, cellPadding: 3 },
-        columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 }, 1: { cellWidth: 30 } },
+        theme:       'grid',
+        headStyles:  { fillColor: [26, 22, 18], textColor: [232, 213, 176], fontStyle: 'bold', font: 'NotoArm', fontSize: 9 },
+        styles:      { fontSize: 8, cellPadding: { top: 1.2, right: 2, bottom: 1.2, left: 2 }, font: 'NotoArm' },
+        columnStyles: {
+            0: { fontStyle: 'bold', cellWidth: 26 },
+            1: { fontStyle: 'bold', cellWidth: 28 },
+            2: { cellWidth: 24 },
+        },
+        didParseCell: (data) => {
+            if (data.section === 'body') {
+                const rowRaw     = data.row.raw;
+                const sideLabel  = rowRaw[0];
+                const tableLabel = rowRaw[1];
+                if (tableLabel !== lastTableLabel) {
+                    bandToggle = !bandToggle;
+                    lastTableLabel = tableLabel;
+                }
+                const base = _sideFillColor(sideLabel);
+                data.cell.styles.fillColor = bandToggle ? base : _lighten(base, 6);
+            }
+            data.cell.text = [' '];
+        },
+        didDrawCell: (data) => {
+            _drawMixedCellText(doc, data);
+        },
     });
 
     doc.save(`wedding_seating_id_${weddingId}.pdf`);
 }
-
 // ── Keyboard shortcuts ────────────────────────────────────────────────────────
 
 document.addEventListener('keydown', (e) => {
@@ -192,6 +337,6 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         ['addTableModal', 'seatCountModal', 'tablePickerModal', 'guestPickerModal',
          'tableSheetModal', 'editCapacityModal', 'confirmDeleteModal',
-         'renameMemberModal', 'chairActionsModal'].forEach(closeModal);
+         'renameMemberModal', 'chairActionsModal', 'mergeGuestsModal'].forEach(closeModal);
     }
 });
